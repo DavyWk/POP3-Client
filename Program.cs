@@ -1,172 +1,197 @@
 ﻿using System;
 using System.IO;
+using System.Text;
+using System.Security;
 using System.Net;
 using System.Net.Sockets;
 using System.Net.Security;
-using System.Security;
+using System.Collections.Generic;
+using System.Runtime.InteropServices;
+
 
 using Utils;
 using Core.CommandParser;
 
 namespace POP3_Client
 {
+	// POP3 protocol : http://www.faqs.org/rfcs/rfc1939.html
+	class Program
+	{
 
-    class Program
-    {
+		static int Main(string[] args)
+		{
+			const string host = "pop-mail.outlook.com";
+			const int port = 995;
 
-        static int Main(string[] args)
-        {
-            const string host = "pop-mail.outlook.com";
-            const int port = 995;
+			Console.Title = "POP3 Client";
 
-            Console.Title = "POP3 Client";
+			TcpClient client = new TcpClient();
+			client.Connect(Dns.GetHostAddresses(host),port);
 
-            TcpClient client = new TcpClient();
-            client.Connect(Dns.GetHostAddresses(host), port);
+			if (!client.Connected)
+			{
+				Logger.Network("Failed to connect to {0}", host);
+				Console.ReadKey();
+				return 1;
+			}
+			Logger.Network("Connected to {0}:{1}", host, port);
 
-            if (!client.Connected)
-            {
-                Logger.Network("Failed to connect to {0}", host);
-                Console.ReadKey();
-                return 1;
-            }
-            Logger.Network("Connected to {0}:{1}", host, port);
+			using (SslStream s = new SslStream(client.GetStream()))
+			{
+				
+				s.AuthenticateAsClient(host);
 
-            using (SslStream s = new SslStream(client.GetStream()))
-            {
-                s.AuthenticateAsClient(host);
+				if (!s.IsAuthenticated)
+				{
+					Console.WriteLine("Error while activating SSL connection");
+					Console.ReadKey();
+					return 1;
+				}
+				
+				Logger.Network("SSL connection activated");
+				Logger.Command(Receive(s));
+				
+				Console.Write("Enter email address: ");
+				SendCommand(s, string.Format("USER {0}", Console.ReadLine()));
+				Logger.Command(Receive(s));
 
-                if (!s.IsAuthenticated)
-                {
-                    Console.WriteLine("Error while activating SSL connection");
-                    Console.ReadKey();
-                    return 1;
-                }
-                Logger.Network("SSL connection activated");
-                Logger.Command(Receive(s));
+				Console.Write("Enter password: ");
+				SecureString pw = ReadPassword();
+				SendCommand(s, string.Format("PASS {0}", pw.ToAsciiString()));
+				Logger.Command(Receive(s));
+				pw.Dispose();
+				
+				if(Logger.Status == ELogTypes.Error) // connection failed ?
+				{
+					Console.ReadLine();
+					return 1;
+				}
+				
+				SendCommand(s, "LIST");
+				//Logger.Command(Receive(s));  # of messages
+				Dictionary<int, int> messages = ListParser.Parse(ReceiveMultiLine(s));
+				//ListParser.Display(messages);
 
-                Console.Write("Enter email address: ");
-                SendCommand(s, string.Format("USER {0}", Console.ReadLine()));
-                Logger.Command(Receive(s));
+				if(messages.Count > 0)
+				{
+					SendCommand(s, string.Format("RETR {0}", messages.Count-1));
+					Receive(s); // only header
 
-                Console.Write("Enter password: ");
-                SecureString pw = ReadPassword();
-                SendCommand(s, string.Format("PASS {0}", pw.ToASCIIString()));
-                Logger.Command(Receive(s));
-                pw.Dispose();
-
-                SendCommand(s, "LIST");
-                Logger.Command(Receive(s));
-                ListParser.Display(ListParser.Parse(ReceiveMultiLine(s)));
-
-
-                SendCommand(s, "QUIT");
-                Logger.Command(Receive(s));
-            }
+					List<string> lines = ReceiveMultiLine(s);
+					
+					string whole = string.Join("",lines.ToArray());
+					Logger.Unknown(whole);
+					
+				}
 
 
 
-            Console.ReadKey();
-            return 0;
-        }
+				SendCommand(s, "QUIT");
+				Logger.Command(Receive(s));
+			}
 
-        static void SendCommand(Stream s, string command)
-        {
 
-            s.Write(Encoding.ASCII.GetBytes(command + "\r\n"), 0, command.Length + 2);
-        }
-        static string Receive(Stream s)
-        {
-            List<byte> str = new List<byte>();
-            string response;
 
-            while (true)
-            {
-                int b = s.ReadByte();
-                if (b == 10 || b < 0) // \r
-                    break;
-                if (b != 13) // \n
-                    str.Add((byte)b);
-            }
-            response = Encoding.ASCII.GetString(str.ToArray());
+			Console.ReadKey();
+			return 0;
+		}
 
-            return response;
-        }
+		static void SendCommand(Stream s, string command)
+		{
 
-        static List<string> ReceiveMultiLine(Stream s)
-        {
-            List<string> list = new List<string>();
-            while (true)
-            {
-                string line = Receive(s);
+			s.Write(Encoding.ASCII.GetBytes(command + "\r\n"), 0, command.Length + 2);
+		}
+		
+		static string Receive(Stream s)
+		{
+			List<byte> str = new List<byte>();
+			string response;
+			try
+			{
+				while (true)
+				{
+					int b = s.ReadByte();
+					if (b == 10 || b < 0) // \r
+						break;
+					if (b != 13) // \n
+						str.Add((byte)b);
+				}
+			}
+			catch (SocketException ex)
+			{
+				Logger.Error(ex.Message);
+			}
+			
+			response = Encoding.UTF8.GetString(str.ToArray());
 
-                if (line == ".")
-                    break;
+			return response;
+		}
 
-                list.Add(line);
-            }
+		static List<string> ReceiveMultiLine(Stream s)
+		{
+			List<string> list = new List<string>();
+			
+			while (true)
+			{
+				string line = Receive(s);
 
-            return list;
-        }
+				if (line == ".")
+					break;
 
-        static bool CheckResponse(string s)
-        {
-            if (s.StartsWith("+OK"))
-                return true;
-            else
-                return false;
-        }
+				list.Add(line);
+			}
 
-        static SecureString ReadPassword()
-        {
-            SecureString s = new SecureString();
+			return list;
+		}
 
-            ConsoleKeyInfo key;
-            do
-            {
-                key = Console.ReadKey(true);
+		static bool CheckResponse(string s)
+		{
+			if (s.StartsWith("+OK"))
+				return true;
+			else
+				return false;
+		}
 
-                if (key.Key == ConsoleKey.Backspace)
-                {
-                    if (s.Length > 0)
-                    {
-                        s.RemoveAt(s.Length - 1);
-                        Console.Write(key.KeyChar);
-                        Console.Write(" ");
-                        Console.Write(key.KeyChar);
-                    }
+		static SecureString ReadPassword()
+		{
+			SecureString s = new SecureString();
 
-                    continue;
-                }
+			ConsoleKeyInfo key;
+			do
+			{
+				key = Console.ReadKey(true);
 
-                // accept only letters
-                if ((ConsoleKey.D0 <= key.Key) && (key.Key <= ConsoleKey.Z))
-                {
-                    s.AppendChar(key.KeyChar);
-                    Console.Write("*");
-                }
+				if (key.Key == ConsoleKey.Backspace)
+				{
+					if (s.Length > 0)
+					{
+						s.RemoveAt(s.Length - 1);
+						Console.Write(key.KeyChar);
+						Console.Write(" ");
+						Console.Write(key.KeyChar);
+					}
 
-            } while (key.Key != ConsoleKey.Enter);
+					continue;
+				}
 
-            Console.WriteLine();
-            s.MakeReadOnly();
+				// accept only letters
+				if ((ConsoleKey.D0 <= key.Key) && (key.Key <= ConsoleKey.Z))
+				{
+					s.AppendChar(key.KeyChar);
+					Console.Write("*");
+				}
 
-            return s;
-        }
+			} while (key.Key != ConsoleKey.Enter);
 
-    }
+			Console.WriteLine();
+			s.MakeReadOnly();
 
-    public static class Extensions
-    {
-        public static string ToASCIIString(this SecureString s)
-        {
-            IntPtr pointer = Marshal.SecureStringToBSTR(s);
-            string ret = Marshal.PtrToStringBSTR(pointer);
-            Marshal.ZeroFreeBSTR(pointer);
+			return s;
+		}
 
-            return ret;
-        }
-    }
+	}
+
+
 
 }
 
