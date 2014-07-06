@@ -10,6 +10,7 @@ using System.Runtime.InteropServices;
 
 
 using Utils;
+using Core.Mail;
 using Core.CommandParser;
 
 namespace POP3_Client
@@ -80,6 +81,8 @@ namespace POP3_Client
 					List<string> lines = ReceiveMultiLine(s);
 					
 					string whole = string.Join("",lines.ToArray());
+					Mail m = new Mail(whole);
+					Logger.Info("Sender's IP: {0}",m.Sender.Address);
 					Logger.Unknown(whole);
 					
 				}

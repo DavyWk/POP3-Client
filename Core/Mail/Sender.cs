@@ -1,6 +1,19 @@
-﻿/*
- * User: DavyOnly
- * Date: 7/6/2014
- * Time: 12:37 PM
- */
+﻿using System.Net;
 
+namespace Core.Mail
+{
+	public struct SenderInfo
+	{
+		public IPAddress Address;
+		public string Name;
+		public string EMailAddress;
+		
+		public SenderInfo(IPAddress address, string name, string emailAddress)
+		{
+			Address = address;
+			Name = name;
+			EMailAddress = emailAddress;
+		}
+	}
+	
+}

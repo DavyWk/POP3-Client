@@ -60,6 +60,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Core\CommandParsers\ListParser.cs" />
+    <Compile Include="Core\Mail\Mail.cs" />
+    <Compile Include="Core\Mail\Sender.cs" />
     <Compile Include="Core\Utils\Utilities.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -68,6 +70,7 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Core\Commands\" />
+    <Folder Include="Core\Mail" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
