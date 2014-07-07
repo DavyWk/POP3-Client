@@ -48,11 +48,25 @@ namespace Core.Mail
 			Subject = headers.Substring(index, headers.IndexOf("Mime",index,StringComparison.OrdinalIgnoreCase) - index);
 			index = 0;
 			
+			index = headers.IndexOf("charset=") + 8;
+			s = headers.Substring(index,headers.IndexOf("Content-",index) - index);
+			s = s.Replace("\"","");
+			CharSet = Encoding.GetEncoding(s);
+			s = string.Empty;
+			index = 0;
 			
+			index = headers.IndexOf("OriginalArrivalTime: ") + 20;
+			s = headers.Substring(index,headers.IndexOf("(",index) - index);
+			ArrivalTime = DateTime.Parse(s);
+			s = string.Empty;
+			index = 0;
 			
-			Body = string.Empty;
-			CharSet = Encoding.UTF8;
-			ArrivalTime = new DateTime(0);
+			index = headers.IndexOf("FILETIME=[");
+			index = headers.IndexOf(']',index) + 1;
+			
+			Body = headers.Substring(index,headers.Length - index);
+			
+
 		}
 	}
 

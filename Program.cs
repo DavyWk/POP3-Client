@@ -87,7 +87,10 @@ namespace POP3_Client
 					Logger.Info("Sender's name: {0}",m.Sender.Name);
 					Logger.Info("MessageID: {0}",m.ID);
 					Logger.Info("Subject: {0}",m.Subject);
-					Logger.Unknown(whole);
+					Logger.Info("Encoding : {0}",m.CharSet.BodyName.ToUpper());
+					Logger.Info("ArrivalTime: {0}", m.ArrivalTime.ToString());
+					Logger.Info("Body: ");
+					Console.WriteLine("{0}",m.Body);
 				}
 
 
