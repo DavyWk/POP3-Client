@@ -83,8 +83,11 @@ namespace POP3_Client
 					string whole = string.Join("",lines.ToArray());
 					Mail m = new Mail(whole);
 					Logger.Info("Sender's IP: {0}",m.Sender.Address);
+					Logger.Info("Sender's EmailAddress: {0}",m.Sender.EMailAddress);
+					Logger.Info("Sender's name: {0}",m.Sender.Name);
+					Logger.Info("MessageID: {0}",m.ID);
+					Logger.Info("Subject: {0}",m.Subject);
 					Logger.Unknown(whole);
-					
 				}
 
 
@@ -95,7 +98,7 @@ namespace POP3_Client
 
 
 
-			Console.ReadKey();
+			Console.ReadLine();
 			return 0;
 		}
 
