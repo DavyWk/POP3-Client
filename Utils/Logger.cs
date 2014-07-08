@@ -15,8 +15,12 @@ namespace Utils
 
 	public static class Logger
 	{
+		
 		private static ELogTypes status;
 
+		/// <summary>
+		/// Retrieves the type of the last logged message
+		/// </summary>
 		public static ELogTypes Status
 		{
 			get {return status;}

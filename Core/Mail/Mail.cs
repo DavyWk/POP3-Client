@@ -17,25 +17,25 @@ namespace Core.Mail
 		public Mail(string headers)
 		{
 			Sender = new SenderInfo(IPAddress.Any,string.Empty,string.Empty);
-			
+
 			int index = headers.IndexOf("([") + 2;
-			string s = headers.Substring(index,headers.IndexOf("])",index) - index);
+			string str = headers.Substring(index,headers.IndexOf("])",index) - index);
 
 			#region Sender
 			
-			Sender.Address = IPAddress.Parse(s);
+			Sender.Address = IPAddress.Parse(str);
 			index = 0;
-			s = string.Empty;
+			str = string.Empty;
 			
 			index = headers.IndexOf("From: ") + 6;
-			s = headers.Substring(index, headers.IndexOf("<",index) - index);
-			Sender.Name = s;
-			s = string.Empty;
+			str = headers.Substring(index, headers.IndexOf("<",index) - index);
+			Sender.Name = str;
+			str = string.Empty;
 				
 			index = headers.IndexOf('<',index) + 1;
-			s = headers.Substring(index,headers.IndexOf('>',index) - index);
-			Sender.EMailAddress = s;
-			s = string.Empty;
+			str = headers.Substring(index,headers.IndexOf('>',index) - index);
+			Sender.EMailAddress = str;
+			str = string.Empty;
 			index = 0;
 			
 			#endregion
@@ -49,8 +49,8 @@ namespace Core.Mail
 			index = 0;
 			
 			index = headers.IndexOf("charset=") + 8;
-			s = headers.Substring(index,headers.IndexOf("Content-",index) - index);
-			s = s.Replace("\"","");
+			str = headers.Substring(index,headers.IndexOf("Content-",index) - index);
+			str = str.Replace("\"","");
 			CharSet = Encoding.GetEncoding(s);
 			s = string.Empty;
 			index = 0;
