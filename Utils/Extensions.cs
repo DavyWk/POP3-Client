@@ -25,5 +25,13 @@ namespace Utils
 
             return ret;
         }
+        
+        public static string SubstringEx(this string s,char begin, char end)
+        {
+        	int bIndex = s.IndexOf(begin); + 1 // +1: doesn't include the begin character
+        	int eIndex = s.IndexOf(end);
+        	
+        	return s.Substring(bIndex,eIndex - bIndex);
+        }
     }
 }

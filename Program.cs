@@ -80,6 +80,10 @@ namespace POP3_Client
 
 					List<string> lines = ReceiveMultiLine(s);
 					
+					Mail m = new Mail(lines);
+					
+					Logger.Info("MessageID: {0}",m.ID);
+					/*
 					string whole = string.Join("",lines.ToArray());
 					Mail m = new Mail(whole);
 					Logger.Info("Sender's IP: {0}",m.Sender.Address);
@@ -91,6 +95,12 @@ namespace POP3_Client
 					Logger.Info("ArrivalTime: {0}", m.ArrivalTime.ToString());
 					Logger.Info("Body: ");
 					Console.WriteLine("{0}",m.Body);
+					 */
+					
+					foreach(string l in lines)
+					{
+						Logger.Unknown(l);
+					}
 				}
 
 
