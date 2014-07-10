@@ -33,15 +33,23 @@ namespace Utils
 		/// <summary>
 		/// Gets the string between two characters.
 		/// </summary>
-		/// <param name="begin"></param>
-		/// <param name="end"></param>
 		/// <returns>The returned string does not include begin and end</returns>
-		public static string SubstringEx(this string s,char begin, char end)
+		public static string SubstringEx(this string s,char begin, char end,int startIndex)
 		{
-			int bIndex = s.IndexOf(begin) + 1; // +1: doesn't include the begin character
+			
+			int bIndex = s.IndexOf(begin,startIndex) + 1; // +1: doesn't include the begin character
 			int eIndex = s.IndexOf(end,bIndex);
 			
 			return s.Substring(bIndex,eIndex - bIndex);
+		}
+		
+		/// <summary>
+		/// Gets the string between two characters.
+		/// </summary>
+		/// <returns>The returned string does not include begin and end</returns>
+		public static string SubstringEx(this string s,char begin, char end)
+		{
+			return SubstringEx(s,begin,end,0);
 		}
 	}
 }

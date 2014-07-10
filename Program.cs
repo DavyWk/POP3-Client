@@ -87,7 +87,9 @@ namespace POP3_Client
 					Logger.Info("ArrivalTime: {0}", m.ArrivalTime.ToString());
 					Logger.Info("Sender's EmailAddress: {0}",m.Sender.EMailAddress);
 					Logger.Info("Sender's name: {0}",m.Sender.Name);
-					Logger.Info("Receiver: \"{0}\" <{1}>",m.Receivers[0].Name,m.Receivers[0].EMailAddress);
+					foreach(Person p in m.Receivers)
+						Logger.Info("Receiver: \"{0}\" <{1}>",p.Name,p.EMailAddress);
+					
 					/*
 					string whole = string.Join("",lines.ToArray());
 					Message m = new Message(whole);

@@ -32,8 +32,8 @@ namespace Core.Mail
 			
 			foreach(string line in message)
 			{
-				string s;
-				int index;
+				string s = string.Empty;
+				int index = 0;
 				
 				if(line.StartsWith("Message-ID:"))
 				{
@@ -51,19 +51,23 @@ namespace Core.Mail
 				}
 				else if(line.StartsWith("To:"))
 				{
-					if((index = line.IndexOf('"')) > 0)
+					do
 					{
-						Person receiver = new Person();
-						receiver.Name = line.SubstringEx('"','"');
-						receiver.EMailAddress = line.SubstringEx('<','>');
-						
-						Receivers.Add(receiver);
-					}
-					else
-					{
-						index = line.IndexOf(' ');
-						Receivers.Add(new Person(string.Empty,line.Substring(index)));
-					}
+						if((index = line.IndexOf('"',index)) > 0)
+						{
+							Person receiver = new Person();
+							receiver.Name = line.SubstringEx('"','"',index);
+							receiver.EMailAddress = line.SubstringEx('<','>',index);
+							
+							Receivers.Add(receiver);
+						}
+						else
+						{
+							index = line.IndexOf(' ',index);
+							Receivers.Add(new Person(string.Empty,line.Substring(index)));
+						}
+					} while ((index = line.IndexOf(',',index)) > 0);
+					
 				}
 				else if(line.StartsWith("Subject:"))
 				{
@@ -78,7 +82,7 @@ namespace Core.Mail
 					string date = line.Substring(index,line.Length - index);
 					index = date.LastIndexOf('-');
 					string utcOffset = date.Substring(index,date.Length - index);
-					int offsetHours = int.Parse(utcOffset)/100;
+					int offsetHours = int.Parse(utcOffset) / 100;
 					TimeSpan offset = new TimeSpan(Math.Abs(offsetHours),0,0);
 					
 					int day;
