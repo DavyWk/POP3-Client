@@ -72,20 +72,21 @@ namespace POP3_Client
 				//Logger.Command(Receive(s));  # of messages
 				Dictionary<int, int> messages = ListParser.Parse(ReceiveMultiLine(s));
 				//ListParser.Display(messages);
-
+				Console.WriteLine();
+				
 				if(messages.Count > 0)
 				{
 					SendCommand(s, string.Format("RETR {0}", messages.Count-1));
 					Receive(s); // only header
-
 					List<string> lines = ReceiveMultiLine(s);
 					
-					Mail m = new Mail(lines);
+					Message m = new Message(lines);
 					
 					Logger.Info("MessageID: {0}",m.ID);
+					Logger.Info("ArrivalTime: {0}", m.ArrivalTime.ToString());
 					/*
 					string whole = string.Join("",lines.ToArray());
-					Mail m = new Mail(whole);
+					Message m = new Message(whole);
 					Logger.Info("Sender's IP: {0}",m.Sender.Address);
 					Logger.Info("Sender's EmailAddress: {0}",m.Sender.EMailAddress);
 					Logger.Info("Sender's name: {0}",m.Sender.Name);

@@ -8,7 +8,7 @@ using Utils;
 
 namespace Core.Mail
 {
-	public struct Mail
+	public struct Message
 	{
 		public string ID;
 		public SenderInfo Sender;
@@ -17,7 +17,7 @@ namespace Core.Mail
 		public Encoding CharSet;
 		public DateTime ArrivalTime;
 		
-		public Mail(List<string> message)
+		public Message(List<string> message)
 		{
 			// NULL initialization
 			ID = string.Empty;
@@ -37,9 +37,24 @@ namespace Core.Mail
 				{
 					ID = line.SubstringEx('<','>');
 				}
-				else if(true)
+				else if(line.StartsWith("Date:"))
 				{
+					const string dateFormat = "ddd, dd MMM yyyy HH:mm:ss";
+					index = line.IndexOf(' ');
+					string date = line.Substring(index,line.Length - index);
+					index = date.LastIndexOf('-');
+					string utcOffset = date.Substring(index,date.Length -index);
+					int offsetHours = int.Parse(utcOffset)/100;
+					TimeSpan offset = new TimeSpan(Math.Abs(offsetHours),0,0);
 					
+					date = date.Substring(0,index).Trim();
+					DateTime dt =DateTime.ParseExact(date,dateFormat,System.Globalization.CultureInfo.InvariantCulture);
+
+					// Add global UTC offset and remove local UTC offset.
+					dt += offset;
+					dt += TimeZone.CurrentTimeZone.GetUtcOffset(dt);
+					
+					ArrivalTime = dt;
 				}
 			}
 			
