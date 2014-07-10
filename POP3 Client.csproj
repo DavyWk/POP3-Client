@@ -61,7 +61,7 @@
   <ItemGroup>
     <Compile Include="Core\CommandParsers\ListParser.cs" />
     <Compile Include="Core\Mail\Message.cs" />
-    <Compile Include="Core\Mail\Sender.cs" />
+    <Compile Include="Core\Mail\Person.cs" />
     <Compile Include="Core\Utils\Utilities.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

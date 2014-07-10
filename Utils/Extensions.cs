@@ -16,8 +16,12 @@ namespace Utils
 			return ret;
 		}
 
+		/// <summary>
+		/// Gets a System.String form a SecureString
+		/// </summary>
+		/// <returns>The original string</returns>
 		public static string ToAsciiString(this SecureString s)
-		{
+		{ // it doesnt't secure the string but its easier to handle password input in a SecureString
 			string ret;
 			IntPtr pointer = Marshal.SecureStringToBSTR(s);
 			ret = Marshal.PtrToStringBSTR(pointer);
@@ -26,10 +30,16 @@ namespace Utils
 			return ret;
 		}
 		
+		/// <summary>
+		/// Gets the string between two characters.
+		/// </summary>
+		/// <param name="begin"></param>
+		/// <param name="end"></param>
+		/// <returns>The returned string does not include begin and end</returns>
 		public static string SubstringEx(this string s,char begin, char end)
 		{
 			int bIndex = s.IndexOf(begin) + 1; // +1: doesn't include the begin character
-			int eIndex = s.IndexOf(end);
+			int eIndex = s.IndexOf(end,bIndex);
 			
 			return s.Substring(bIndex,eIndex - bIndex);
 		}

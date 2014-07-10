@@ -11,7 +11,8 @@ namespace Core.Mail
 	public struct Message
 	{
 		public string ID;
-		public SenderInfo Sender;
+		public List<Person> Receivers;
+		public Person Sender;
 		public string Body;
 		public string Subject;
 		public Encoding CharSet;
@@ -21,7 +22,8 @@ namespace Core.Mail
 		{
 			// NULL initialization
 			ID = string.Empty;
-			Sender = new SenderInfo(IPAddress.Any,string.Empty,string.Empty);
+			Receivers = new List<Person>();
+			Sender = new Person(string.Empty,string.Empty);
 			Body = string.Empty;
 			Subject = string.Empty;
 			CharSet = Encoding.ASCII;
@@ -37,18 +39,58 @@ namespace Core.Mail
 				{
 					ID = line.SubstringEx('<','>');
 				}
+				else if(line.StartsWith("From:"))
+				{
+					index = line.IndexOf(':') + 2;
+					if(line.IndexOf('"') > 0)
+						Sender.Name =  line.SubstringEx('"','"');
+					else
+						Sender.Name = line.SubstringEx(' ',' ');
+					
+					Sender.EMailAddress = line.SubstringEx('<','>');
+				}
+				else if(line.StartsWith("To:"))
+				{
+					if((index = line.IndexOf('"')) > 0)
+					{
+						Person receiver = new Person();
+						receiver.Name = line.SubstringEx('"','"');
+						receiver.EMailAddress = line.SubstringEx('<','>');
+						
+						Receivers.Add(receiver);
+					}
+					else
+					{
+						index = line.IndexOf(' ');
+						Receivers.Add(new Person(string.Empty,line.Substring(index)));
+					}
+				}
+				else if(line.StartsWith("Subject:"))
+				{
+					index = line.IndexOf(':') + 2; // skip space
+					Subject = line.Substring(index,line.Length - index);
+				}
 				else if(line.StartsWith("Date:"))
 				{
-					const string dateFormat = "ddd, dd MMM yyyy HH:mm:ss";
-					index = line.IndexOf(' ');
+					string dateFormat = "ddd dd MMM yyyy HH:mm:ss";
+					
+					index = line.IndexOf(' ') + 1;
 					string date = line.Substring(index,line.Length - index);
 					index = date.LastIndexOf('-');
-					string utcOffset = date.Substring(index,date.Length -index);
+					string utcOffset = date.Substring(index,date.Length - index);
 					int offsetHours = int.Parse(utcOffset)/100;
 					TimeSpan offset = new TimeSpan(Math.Abs(offsetHours),0,0);
 					
+					int day;
+					int.TryParse(date.Substring(0,1), out day);
+					if(day > 0)
+					{
+						dateFormat = dateFormat.Replace("ddd dd","d");
+					}
+					
 					date = date.Substring(0,index).Trim();
-					DateTime dt =DateTime.ParseExact(date,dateFormat,System.Globalization.CultureInfo.InvariantCulture);
+					date = date.Replace(",","");
+					DateTime dt = DateTime.ParseExact(date,dateFormat,System.Globalization.CultureInfo.InvariantCulture);
 
 					// Add global UTC offset and remove local UTC offset.
 					dt += offset;

@@ -82,12 +82,15 @@ namespace POP3_Client
 					
 					Message m = new Message(lines);
 					
+					Logger.Info("Subject: {0}",m.Subject);
 					Logger.Info("MessageID: {0}",m.ID);
 					Logger.Info("ArrivalTime: {0}", m.ArrivalTime.ToString());
+					Logger.Info("Sender's EmailAddress: {0}",m.Sender.EMailAddress);
+					Logger.Info("Sender's name: {0}",m.Sender.Name);
+					Logger.Info("Receiver: \"{0}\" <{1}>",m.Receivers[0].Name,m.Receivers[0].EMailAddress);
 					/*
 					string whole = string.Join("",lines.ToArray());
 					Message m = new Message(whole);
-					Logger.Info("Sender's IP: {0}",m.Sender.Address);
 					Logger.Info("Sender's EmailAddress: {0}",m.Sender.EMailAddress);
 					Logger.Info("Sender's name: {0}",m.Sender.Name);
 					Logger.Info("MessageID: {0}",m.ID);
