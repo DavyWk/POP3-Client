@@ -57,7 +57,7 @@ namespace POP3_Client
 				Logger.Command(Receive(s));
 
 				Console.Write("Enter password: ");
-				SecureString pw = ReadPassword();
+				SecureString pw = Utilities.ReadPassword();
 				SendCommand(s, string.Format("PASS {0}", pw.ToAsciiString()));
 				Logger.Command(Receive(s));
 				pw.Dispose();
@@ -88,8 +88,10 @@ namespace POP3_Client
 					Logger.Info("Sender's EmailAddress: {0}",m.Sender.EMailAddress);
 					Logger.Info("Sender's name: {0}",m.Sender.Name);
 					foreach(Person p in m.Receivers)
-						Logger.Info("Receiver: \"{0}\" <{1}>",p.Name,p.EMailAddress);
+						Logger.Info("Receiver: \"{0}\" <{1}>",p.Name.Trim(),p.EMailAddress);
+					Logger.Info("Encoding : {0}",m.CharSet.BodyName.ToUpper());
 					
+					Console.WriteLine();
 					/*
 					string whole = string.Join("",lines.ToArray());
 					Message m = new Message(whole);
@@ -175,43 +177,6 @@ namespace POP3_Client
 				return true;
 			else
 				return false;
-		}
-
-		static SecureString ReadPassword()
-		{
-			SecureString s = new SecureString();
-
-			ConsoleKeyInfo key;
-			do
-			{
-				key = Console.ReadKey(true);
-
-				if (key.Key == ConsoleKey.Backspace)
-				{
-					if (s.Length > 0)
-					{
-						s.RemoveAt(s.Length - 1);
-						Console.Write(key.KeyChar);
-						Console.Write(" ");
-						Console.Write(key.KeyChar);
-					}
-
-					continue;
-				}
-
-				// accept only letters
-				if ((ConsoleKey.D0 <= key.Key) && (key.Key <= ConsoleKey.Z))
-				{
-					s.AppendChar(key.KeyChar);
-					Console.Write("*");
-				}
-
-			} while (key.Key != ConsoleKey.Enter);
-
-			Console.WriteLine();
-			s.MakeReadOnly();
-
-			return s;
 		}
 
 	}

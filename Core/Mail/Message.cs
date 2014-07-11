@@ -32,6 +32,7 @@ namespace Core.Mail
 			
 			foreach(string line in message)
 			{
+				
 				string s = string.Empty;
 				int index = 0;
 				
@@ -39,6 +40,7 @@ namespace Core.Mail
 				{
 					ID = line.SubstringEx('<','>');
 				}
+				
 				else if(line.StartsWith("From:"))
 				{
 					index = line.IndexOf(':') + 2;
@@ -49,6 +51,7 @@ namespace Core.Mail
 					
 					Sender.EMailAddress = line.SubstringEx('<','>');
 				}
+				
 				else if(line.StartsWith("To:"))
 				{
 					do
@@ -63,24 +66,30 @@ namespace Core.Mail
 						}
 						else
 						{
+							if(index == -1)
+								index = 0;
+							
 							index = line.IndexOf(' ',index);
 							Receivers.Add(new Person(string.Empty,line.Substring(index)));
 						}
 					} while ((index = line.IndexOf(',',index)) > 0);
 					
 				}
+				
 				else if(line.StartsWith("Subject:"))
 				{
 					index = line.IndexOf(':') + 2; // skip space
 					Subject = line.Substring(index,line.Length - index);
 				}
+				
 				else if(line.StartsWith("Date:"))
 				{
 					string dateFormat = "ddd dd MMM yyyy HH:mm:ss";
 					
 					index = line.IndexOf(' ') + 1;
 					string date = line.Substring(index,line.Length - index);
-					index = date.LastIndexOf('-');
+					index = date.LastIndexOfAny(new char[] {'-','+'});
+					
 					string utcOffset = date.Substring(index,date.Length - index);
 					int offsetHours = int.Parse(utcOffset) / 100;
 					TimeSpan offset = new TimeSpan(Math.Abs(offsetHours),0,0);
@@ -101,6 +110,18 @@ namespace Core.Mail
 					dt += TimeZone.CurrentTimeZone.GetUtcOffset(dt);
 					
 					ArrivalTime = dt;
+				}
+				
+				else if(line.StartsWith("Content-Type:"))
+				{
+					
+				}
+				
+				else if(line.StartsWithEx("Charset="))
+				{
+					index = line.IndexOf('=') + 1;
+					s = line.Substring(index, line.Length - index);
+					CharSet = Encoding.GetEncoding(s);					
 				}
 			}
 			

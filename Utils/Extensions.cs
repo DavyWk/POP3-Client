@@ -51,5 +51,14 @@ namespace Utils
 		{
 			return SubstringEx(s,begin,end,0);
 		}
+		
+		/// <summary>
+		/// String.StartsWith + ignore case and culture
+		/// </summary>
+		public static bool StartsWithEx(this string s,string prefix)
+		{
+			s = s.Trim();
+			return s.StartsWith(prefix,StringComparison.InvariantCultureIgnoreCase);
+		}
 	}
 }
