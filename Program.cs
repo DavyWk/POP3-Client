@@ -92,6 +92,7 @@ namespace POP3_Client
 					Logger.Info("Encoding : {0}",m.CharSet.BodyName.ToUpper());
 					
 					Console.WriteLine();
+					Logger.Unknown(m.Body);
 					/*
 					string whole = string.Join("",lines.ToArray());
 					Message m = new Message(whole);
@@ -105,10 +106,10 @@ namespace POP3_Client
 					Console.WriteLine("{0}",m.Body);
 					 */
 					
-					foreach(string l in lines)
-					{
-						Logger.Unknown(l);
-					}
+//					foreach(string l in lines)
+//					{
+//						Logger.Unknown(l);
+//					}
 				}
 
 

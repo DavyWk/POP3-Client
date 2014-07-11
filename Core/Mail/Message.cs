@@ -1,7 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Net;
+using System.Linq;
 using System.Text;
+using System.Collections.Generic;
+
 
 using Utils;
 
@@ -20,7 +21,7 @@ namespace Core.Mail
 		
 		public Message(List<string> message)
 		{
-			// NULL initialization
+			// Default initialization.
 			ID = string.Empty;
 			Receivers = new List<Person>();
 			Sender = new Person(string.Empty,string.Empty);
@@ -28,7 +29,6 @@ namespace Core.Mail
 			Subject = string.Empty;
 			CharSet = Encoding.ASCII;
 			ArrivalTime = new DateTime(0);
-			
 			
 			foreach(string line in message)
 			{
@@ -44,6 +44,7 @@ namespace Core.Mail
 				else if(line.StartsWith("From:"))
 				{
 					index = line.IndexOf(':') + 2;
+					
 					if(line.IndexOf('"') > 0)
 						Sender.Name =  line.SubstringEx('"','"');
 					else
@@ -112,19 +113,41 @@ namespace Core.Mail
 					ArrivalTime = dt;
 				}
 				
-				else if(line.StartsWith("Content-Type:"))
-				{
-					
-				}
-				
 				else if(line.StartsWithEx("Charset="))
 				{
 					index = line.IndexOf('=') + 1;
 					s = line.Substring(index, line.Length - index);
-					CharSet = Encoding.GetEncoding(s);					
+					CharSet = Encoding.GetEncoding(s);
+				}
+				
+				else if(line.StartsWith("X-OriginalArrivalTime:"))
+				{
+					break;
 				}
 			}
 			
+			List<string> lBody = new List<string>();
+			int bodyStart = Int32.MaxValue;
+			for(int i = 0; i < message.Count;i++)
+			{
+				if(i > bodyStart)
+				{
+					lBody.Add(message[i]);
+					continue;
+				}
+				
+				if(message[i].StartsWith("X-OriginalArrivalTime:"))
+				{
+					// Skips blank line after X-OriginalArrivalTime.
+					bodyStart = i + 1;
+					continue;
+				}
+				
+
+				
+			}
+			
+			Body = string.Join("",lBody.ToArray());
 
 
 		}
