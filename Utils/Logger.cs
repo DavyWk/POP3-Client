@@ -1,6 +1,8 @@
 ﻿using System;
 using System.IO;
 
+using Core.Protocol;
+
 namespace Utils
 {
 	public enum ELogTypes
@@ -19,6 +21,7 @@ namespace Utils
 		
 		private static ELogTypes status;
 		private static TextWriter writer =  Console.Out;
+		private static string filePath;
 
 		/// <summary>
 		/// Retrieves the type of the last logged message
@@ -29,46 +32,92 @@ namespace Utils
 			private set { status = value;}
 		}
 		
+		public static void Command(bool file, string format,params object[] args)
+		{
+			string s = string.Format(format,args);
+			
+			if(file)
+			{
+				if(s.StartsWith(Constants.OK))
+					LogFile(ELogTypes.Success,s.Replace(Constants.OK,string.Empty).Trim());
+				else if(s.StartsWith(Constants.ERROR))
+					LogFile(ELogTypes.Error,s.Replace(Constants.ERROR,string.Empty).Trim());
+				else
+					LogFile(ELogTypes.Unknown,s);
+			}
+			else
+			{
+				if(s.StartsWith(Constants.OK))
+					LogConsole(ELogTypes.Success,s.Replace(Constants.OK,string.Empty).Trim());
+				else if(s.StartsWith(Constants.ERROR))
+					LogConsole(ELogTypes.Error,s.Replace(Constants.ERROR,string.Empty).Trim());
+				else
+					LogConsole(ELogTypes.Unknown,s);
+			}
+		}
 		public static void Command(string format, params object[] args)
 		{
-			string s = string.Format(format, args);
-			
-			if (s.StartsWith("+OK"))
-				LogConsole(ELogTypes.Success, s.Replace("+OK",string.Empty).Capitalize());
-			else if (s.StartsWith("-ERR"))
-				LogConsole(ELogTypes.Error, s.Replace("-ERR", string.Empty).Capitalize());
-			else
-				LogConsole(ELogTypes.Unknown, s);
+			Command(false,format,args);
 		}
 
+		public static void Info(bool file, string format, params object[] args)
+		{
+			if(file)
+				LogFile(ELogTypes.Info,format,args);
+			else
+				LogConsole(ELogTypes.Info,format,args);
+		}
 		public static void Info(string format, params object[] args)
 		{
-			LogConsole(ELogTypes.Info, format, args);
+			Info(false,format,args);
 		}
 
+		public static void Network(bool file, string format, params object[] args)
+		{
+			if(file)
+				LogFile(ELogTypes.Network,format,args);
+			else
+				LogConsole(ELogTypes.Network,format,args);
+		}
 		public static void Network(string format, params object[] args)
 		{
-			LogConsole(ELogTypes.Network, format, args);
+			Network(false,format,args);
 		}
 
+		public static void Debug(bool file, string format, params object[] args)
+		{
+			if(file)
+				LogFile(ELogTypes.Debug,format,args);
+			else
+				LogConsole(ELogTypes.Debug,format,args);
+		}
 		public static void Debug(string format, params object[] args)
 		{
-			LogConsole(ELogTypes.Debug, format, args);
+			Debug(false,format,args);
 		}
 
+		public static void Error(bool file,string format, params object[] args)
+		{
+			if(file)
+				LogFile(ELogTypes.Error,format,args);
+			else
+				LogConsole(ELogTypes.Error,format,args);
+		}
 		public static void Error(string format, params object[] args)
 		{
-			LogConsole(ELogTypes.Error, format, args);
+			Error(false,format,args);
 		}
 
+		public static void Success(bool file, string format, params object[] args)
+		{
+			if(file)
+				LogFile(ELogTypes.Success,format,args);
+			else
+				LogConsole(ELogTypes.Success,format,args);
+		}
 		public static void Success(string format, params object[] args)
 		{
-			LogConsole(ELogTypes.Success, format, args);
-		}
-
-		public static void Unknown(string format, params object[] args)
-		{
-			LogConsole(ELogTypes.Unknown, format, args);
+			Success(false, format, args);
 		}
 
 		public static void Inbox(bool file,string format, params object[] args)
@@ -83,10 +132,26 @@ namespace Utils
 			Inbox(false, format, args);
 		}
 
+		public static void Unknown(bool file, string format, params object[] args)
+		{
+			if(file)
+				LogFile(ELogTypes.Unknown,format,args);
+			else
+				LogConsole(ELogTypes.Unknown,format,args);
+		}
+		public static void Unknown(string format, params object[] args)
+		{
+			Unknown(false,format,args);
+		}
+		
+		
 		public static void LogConsole(ELogTypes logType, string format, params object[] args)
 		{
 			ConsoleColor c = Console.ForegroundColor;
+			string formatted = string.Format(format,args);
 
+			status = logType;
+			
 			switch (logType)
 			{
 				case ELogTypes.Info:
@@ -114,23 +179,25 @@ namespace Utils
 				default:
 					break;
 			}
-
+			
 			Console.ForegroundColor = c;
 			Console.Write("<{0}> ", logType.ToString());
 			Console.ResetColor();
 			
-			if(args.Length > 0)
-				Console.WriteLine(format, args);
-			else
-				Console.WriteLine(format);
-
-			status = logType;
+			LogFile(formatted);
+			
 		}
 		
+		// This will only be called if the logger is writing to file.
 		public static void LogFile(ELogTypes logType,string format, params object[] args)
 		{
 			string formatted = string.Format(format,args);
 			string text = string.Format("<{0}> {1}",logType.ToString(),formatted);
+			
+			status = logType;
+			
+			if((filePath != string.Empty) && (writer == Console.Out))
+			   writer = File.AppendText(filePath);
 			
 			LogFile(text);
 		}
@@ -147,7 +214,22 @@ namespace Utils
 				string time = dt.ToString("[MM-dd-yyyy@hh:mm]");
 				
 				writer.WriteLine("{0} {1}",time,text);
+				writer.Flush();
+				writer.Dispose();
 			}
+			
+			writer = Console.Out;
+		}
+		
+		public static void Bind(string path)
+		{
+			filePath = path;
+		}
+		
+		public static void UnBind()
+		{
+			writer = Console.Out;
+			filePath = string.Empty;
 		}
 	}
 }
