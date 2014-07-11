@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 
 namespace Utils
 {
@@ -17,6 +18,7 @@ namespace Utils
 	{
 		
 		private static ELogTypes status;
+		private static TextWriter writer =  Console.Out;
 
 		/// <summary>
 		/// Retrieves the type of the last logged message
@@ -32,49 +34,56 @@ namespace Utils
 			string s = string.Format(format, args);
 			
 			if (s.StartsWith("+OK"))
-				Log(ELogTypes.Success, s.Replace("+OK",string.Empty).Capitalize());
+				LogConsole(ELogTypes.Success, s.Replace("+OK",string.Empty).Capitalize());
 			else if (s.StartsWith("-ERR"))
-				Log(ELogTypes.Error, s.Replace("-ERR", string.Empty).Capitalize());
+				LogConsole(ELogTypes.Error, s.Replace("-ERR", string.Empty).Capitalize());
 			else
-				Log(ELogTypes.Unknown, s);
+				LogConsole(ELogTypes.Unknown, s);
 		}
 
 		public static void Info(string format, params object[] args)
 		{
-			Log(ELogTypes.Info, format, args);
+			LogConsole(ELogTypes.Info, format, args);
 		}
 
 		public static void Network(string format, params object[] args)
 		{
-			Log(ELogTypes.Network, format, args);
+			LogConsole(ELogTypes.Network, format, args);
 		}
 
 		public static void Debug(string format, params object[] args)
 		{
-			Log(ELogTypes.Debug, format, args);
+			LogConsole(ELogTypes.Debug, format, args);
 		}
 
 		public static void Error(string format, params object[] args)
 		{
-			Log(ELogTypes.Error, format, args);
+			LogConsole(ELogTypes.Error, format, args);
 		}
 
 		public static void Success(string format, params object[] args)
 		{
-			Log(ELogTypes.Success, format, args);
+			LogConsole(ELogTypes.Success, format, args);
 		}
 
 		public static void Unknown(string format, params object[] args)
 		{
-			Log(ELogTypes.Unknown, format, args);
+			LogConsole(ELogTypes.Unknown, format, args);
 		}
 
+		public static void Inbox(bool file,string format, params object[] args)
+		{
+			if(file)
+				LogFile(ELogTypes.Inbox,format,args);
+			else
+				LogConsole(ELogTypes.Inbox,format,args);
+		}
 		public static void Inbox(string format, params object[] args)
 		{
-			Log(ELogTypes.Inbox, format, args);
+			Inbox(false, format, args);
 		}
 
-		public static void Log(ELogTypes logType, string format, params object[] args)
+		public static void LogConsole(ELogTypes logType, string format, params object[] args)
 		{
 			ConsoleColor c = Console.ForegroundColor;
 
@@ -116,6 +125,29 @@ namespace Utils
 				Console.WriteLine(format);
 
 			status = logType;
+		}
+		
+		public static void LogFile(ELogTypes logType,string format, params object[] args)
+		{
+			string formatted = string.Format(format,args);
+			string text = string.Format("<{0}> {1}",logType.ToString(),formatted);
+			
+			LogFile(text);
+		}
+		
+		public static void LogFile(string text)
+		{
+			if(writer == Console.Out)
+			{
+				writer.WriteLine(text);
+			}
+			else
+			{
+				DateTime dt = DateTime.Now;
+				string time = dt.ToString("[MM-dd-yyyy@hh:mm]");
+				
+				writer.WriteLine("{0} {1}",time,text);
+			}
 		}
 	}
 }
