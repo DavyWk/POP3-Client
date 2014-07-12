@@ -1,6 +1,13 @@
-﻿/*
- * User: DavyOnly
- * Date: 7/11/2014
- * Time: 11:54 AM
- */
-
+﻿namespace Core.Protocol
+{
+	public static class Protocol
+	{
+		public static bool CheckHeader(string s)
+		{
+			if(s.StartsWith(Constants.OK))
+				return true;
+			else
+				return false;
+		}
+	}
+}

@@ -38,7 +38,7 @@ namespace Utils
 			
 			if(file)
 			{
-				if(s.StartsWith(Constants.OK))
+				if(Protocol.CheckHeader(s))
 					LogFile(ELogTypes.Success,s.Replace(Constants.OK,string.Empty).Trim());
 				else if(s.StartsWith(Constants.ERROR))
 					LogFile(ELogTypes.Error,s.Replace(Constants.ERROR,string.Empty).Trim());
@@ -47,7 +47,7 @@ namespace Utils
 			}
 			else
 			{
-				if(s.StartsWith(Constants.OK))
+				if(Protocol.CheckHeader(s))
 					LogConsole(ELogTypes.Success,s.Replace(Constants.OK,string.Empty).Trim());
 				else if(s.StartsWith(Constants.ERROR))
 					LogConsole(ELogTypes.Error,s.Replace(Constants.ERROR,string.Empty).Trim());

@@ -104,11 +104,21 @@ namespace Core.Mail
 					
 					date = date.Substring(0,index).Trim();
 					date = date.Replace(",","");
-					DateTime dt = DateTime.ParseExact(date,dateFormat,System.Globalization.CultureInfo.InvariantCulture);
-
-					// Add global UTC offset and remove local UTC offset.
-					dt += offset;
-					dt += TimeZone.CurrentTimeZone.GetUtcOffset(dt);
+					
+					// Here, dt is equal to a default DateTime.
+					DateTime dt = ArrivalTime;
+					try
+					{
+						dt = DateTime.ParseExact(date,dateFormat,System.Globalization.CultureInfo.InvariantCulture);
+						
+						// Add global UTC offset and remove local UTC offset.
+						dt += offset;
+						dt += TimeZone.CurrentTimeZone.GetUtcOffset(dt);
+					}
+					catch(FormatException ex)
+					{
+						Logger.Error("FormatException: {0} {1}",ex.Message,ex.StackTrace);
+					}
 					
 					ArrivalTime = dt;
 				}
@@ -122,17 +132,24 @@ namespace Core.Mail
 				
 				else if(line.StartsWith("X-OriginalArrivalTime:"))
 				{
+					// Exit the foreach loop because the remaining
+					// lines will be part of the body.
 					break;
 				}
 			}
 			
 			List<string> lBody = new List<string>();
+			// The size of the mail should not exeed Int32.MaxValue.
 			int bodyStart = Int32.MaxValue;
+			
 			for(int i = 0; i < message.Count;i++)
 			{
 				if(i > bodyStart)
 				{
 					lBody.Add(message[i]);
+					
+					// If bodyStart is already set, don't need to
+					// check again.
 					continue;
 				}
 				
@@ -142,8 +159,6 @@ namespace Core.Mail
 					bodyStart = i + 1;
 					continue;
 				}
-				
-
 				
 			}
 			

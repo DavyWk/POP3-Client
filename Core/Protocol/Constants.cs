@@ -1,6 +1,13 @@
-﻿/*
- * User: DavyOnly
- * Date: 7/11/2014
- * Time: 11:54 AM
- */
-
+﻿namespace Core.Protocol
+{
+	public static class Constants
+	{
+		public const string MultiLineTerminator = ".";
+			
+		public const string Terminator = "\r\n";
+		public const short TerminatorLength = 2;
+		
+		public const string OK = "+OK";
+		public const string ERROR = "-ERR";
+	}
+}

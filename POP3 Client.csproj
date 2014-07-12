@@ -59,19 +59,23 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Core\CommandParsers\ListParser.cs" />
+    <Compile Include="Core\Protocol\CommandParsers\ListParser.cs" />
     <Compile Include="Core\Mail\Message.cs" />
     <Compile Include="Core\Mail\Person.cs" />
-    <Compile Include="Core\Utils\Utilities.cs" />
+    <Compile Include="Core\Network\POP3Client.cs" />
+    <Compile Include="Core\Protocol\Commands.cs" />
+    <Compile Include="Core\Protocol\Constants.cs" />
+    <Compile Include="Core\Protocol\Protocol.cs" />
+    <Compile Include="Core\Helpers\Helpers.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Utils\Extensions.cs" />
     <Compile Include="Utils\Logger.cs" />
-    <Compile Include="Utils\Utilities.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Core\Commands\" />
     <Folder Include="Core\Mail" />
+    <Folder Include="Core\Network" />
+    <Folder Include="Core\Protocol" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

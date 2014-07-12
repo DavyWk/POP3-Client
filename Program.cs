@@ -11,7 +11,9 @@ using System.Runtime.InteropServices;
 
 using Utils;
 using Core.Mail;
-using Core.CommandParser;
+using Core.Protocol;
+using Core.Network;
+using Core.Protocol.CommandParser;
 
 namespace POP3_Client
 {
@@ -23,102 +25,96 @@ namespace POP3_Client
 		{
 			const string host = "pop-mail.outlook.com";
 			const int port = 995;
-
+			
+			Logger.Bind(@"C:\Users\DavyOnly\Desktop\test.txt");
+			
 			Console.Title = "POP3 Client";
-
-			TcpClient client = new TcpClient();
-			client.Connect(Dns.GetHostAddresses(host),port);
-
-			if (!client.Connected)
-			{
-				Logger.Network("Failed to connect to {0}", host);
-				Console.ReadKey();
-				return 1;
-			}
-			Logger.Network("Connected to {0}:{1}", host, port);
-
-			using (SslStream s = new SslStream(client.GetStream()))
-			{
-				
-				s.AuthenticateAsClient(host);
-
-				if (!s.IsAuthenticated)
-				{
-					Console.WriteLine("Error while activating SSL connection");
-					Console.ReadKey();
-					return 1;
-				}
-				
-				Logger.Network("SSL connection activated");
-				Logger.Command(Receive(s));
-				
-				Console.Write("Enter email address: ");
-				SendCommand(s, string.Format("USER {0}", Console.ReadLine()));
-				Logger.Command(Receive(s));
-
-				Console.Write("Enter password: ");
-				SecureString pw = Utilities.ReadPassword();
-				SendCommand(s, string.Format("PASS {0}", pw.ToAsciiString()));
-				Logger.Command(Receive(s));
-				pw.Dispose();
-				
-				if(Logger.Status == ELogTypes.Error) // connection failed ?
-				{
-					Console.ReadLine();
-					return 1;
-				}
-				
-				SendCommand(s, "LIST");
-				//Logger.Command(Receive(s));  # of messages
-				Dictionary<int, int> messages = ListParser.Parse(ReceiveMultiLine(s));
-				//ListParser.Display(messages);
-				Console.WriteLine();
-				
-				if(messages.Count > 0)
-				{
-					SendCommand(s, string.Format("RETR {0}", messages.Count-1));
-					Receive(s); // only header
-					List<string> lines = ReceiveMultiLine(s);
-					
-					Message m = new Message(lines);
-					
-					Logger.Info("Subject: {0}",m.Subject);
-					Logger.Info("MessageID: {0}",m.ID);
-					Logger.Info("ArrivalTime: {0}", m.ArrivalTime.ToString());
-					Logger.Info("Sender's EmailAddress: {0}",m.Sender.EMailAddress);
-					Logger.Info("Sender's name: {0}",m.Sender.Name);
-					foreach(Person p in m.Receivers)
-						Logger.Info("Receiver: \"{0}\" <{1}>",p.Name.Trim(),p.EMailAddress);
-					Logger.Info("Encoding : {0}",m.CharSet.BodyName.ToUpper());
-					
-					Console.WriteLine();
-					Logger.Unknown(m.Body);
-					/*
-					string whole = string.Join("",lines.ToArray());
-					Message m = new Message(whole);
-					Logger.Info("Sender's EmailAddress: {0}",m.Sender.EMailAddress);
-					Logger.Info("Sender's name: {0}",m.Sender.Name);
-					Logger.Info("MessageID: {0}",m.ID);
-					Logger.Info("Subject: {0}",m.Subject);
-					Logger.Info("Encoding : {0}",m.CharSet.BodyName.ToUpper());
-					Logger.Info("ArrivalTime: {0}", m.ArrivalTime.ToString());
-					Logger.Info("Body: ");
-					Console.WriteLine("{0}",m.Body);
-					 */
-					
-//					foreach(string l in lines)
-//					{
-//						Logger.Unknown(l);
-//					}
-				}
-
-
-
-				SendCommand(s, "QUIT");
-				Logger.Command(Receive(s));
-			}
-
-
+			#region old
+//
+//			TcpClient client = new TcpClient();
+//			client.Connect(Dns.GetHostAddresses(host),port);
+//
+//			if (!client.Connected)
+//			{
+//				Logger.Network("Failed to connect to {0}", host);
+//				Console.ReadKey();
+//				return 1;
+//			}
+//
+//			Logger.Network("Connected to {0}:{1}", host, port);
+//
+//			using (SslStream s = new SslStream(client.GetStream()))
+//			{
+//
+//				s.AuthenticateAsClient(host);
+//				if (!s.IsAuthenticated)
+//				{
+//					Logger.Network(true,"Error while activating SSL connection");
+//					Logger.UnBind();
+//					Console.ReadKey();
+//					return 1;
+//				}
+//
+//				Logger.Network("SSL connection activated");
+//				Logger.Command(Receive(s));
+//
+//				Console.Write("Enter email address: ");
+//				SendCommand(s, string.Format("{0} {1}", Commands.USER,Console.ReadLine()));
+//				Logger.Command(Receive(s));
+//
+//				Console.Write("Enter password: ");
+//				SecureString pw = Utilities.ReadPassword();
+//				SendCommand(s, string.Format("{0} {1}", Commands.PASS,pw.ToAsciiString()));
+//				Logger.Command(Receive(s));
+//				pw.Dispose();
+//
+//				if(Logger.Status == ELogTypes.Error) // connection failed ?
+//				{
+//					Logger.Error("Exiting ...");
+//					Console.ReadLine();
+//					return 1;
+//				}
+//
+//				SendCommand(s, Commands.LIST);
+//				//Logger.Command(Receive(s));  # of messages
+//				Dictionary<int, int> messages = ListParser.Parse(ReceiveMultiLine(s));
+//				//ListParser.Display(messages);
+//				Console.WriteLine();
+//
+//				if(messages.Count > 0)
+//				{
+//					SendCommand(s, string.Format("{0} {1}",Commands.RETRIEVE, messages.Count-1));
+//					Receive(s); // only header
+//					List<string> lines = ReceiveMultiLine(s);
+//
+//					Message m = new Message(lines);
+//
+//					Logger.Info("Subject: {0}",m.Subject);
+//					Logger.Info("MessageID: {0}",m.ID);
+//					Logger.Info("ArrivalTime: {0}", m.ArrivalTime.ToString());
+//					Logger.Info("Sender's EmailAddress: {0}",m.Sender.EMailAddress);
+//					Logger.Info("Sender's name: {0}",m.Sender.Name);
+//					foreach(Person p in m.Receivers)
+//						Logger.Info("Receiver: \"{0}\" <{1}>",p.Name.Trim(),p.EMailAddress);
+//					Logger.Info("Encoding : {0}",m.CharSet.BodyName.ToUpper());
+//
+//					Console.WriteLine();
+//					Logger.Unknown(m.Body);
+//
+//
+//				}
+//
+//
+//
+//				SendCommand(s, Commands.QUIT);
+//				Logger.Command(Receive(s));
+//			}
+			#endregion
+			
+			POP3Client c = new POP3Client(host,port);
+			c.Connect();
+			
+			c.Close();
 
 			Console.ReadLine();
 			return 0;
@@ -172,13 +168,6 @@ namespace POP3_Client
 			return list;
 		}
 
-		static bool CheckResponse(string s)
-		{
-			if (s.StartsWith("+OK"))
-				return true;
-			else
-				return false;
-		}
 
 	}
 

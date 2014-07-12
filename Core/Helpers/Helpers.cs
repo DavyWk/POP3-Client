@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Security;
 
-namespace Utils
+namespace Core.Helpers
 {
-	public static class Utilities
-	{
+    public static class Helpers
+    {
 		public static SecureString ReadPassword()
 		{
 			SecureString s = new SecureString();
@@ -41,5 +41,5 @@ namespace Utils
 
 			return s;
 		}
-	}
+    }
 }

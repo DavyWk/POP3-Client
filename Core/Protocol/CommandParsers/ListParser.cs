@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 using Utils;
 
-namespace Core.CommandParser
+namespace Core.Protocol.CommandParser
 {
     public static class ListParser
     {
