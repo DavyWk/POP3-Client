@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Net;
 using System.Text;
 using System.Net.Sockets;
@@ -13,20 +14,21 @@ namespace Core.Network
 	{
 		private bool disposed;
 		private TcpClient client;
-		private SslStream stream;
+		private Stream stream;
 		
 		public int Port { get; private set; }
 		public string Host { get; private set; }
 		public IPAddress IP { get; private set; }
+		public bool SSL { get; private set; }
 		
 		
-		public POP3Client(string host, int port)
+		public POP3Client(string host, int port, bool ssl = false)
 		{
 			Host = host;
 			IP = Dns.GetHostAddresses(Host)[0];
 			Port = port;
 			client = new TcpClient();
-			
+			SSL = ssl;
 		}
 		
 		#region Implementing IDisposable
@@ -62,10 +64,23 @@ namespace Core.Network
 			
 			if(client.Connected)
 			{
-				stream = new SslStream(client.GetStream());
-				stream.AuthenticateAsClient(Host);
+				stream = client.GetStream();
+				
+				if(SSL)
+				{
+					SslStream secureStream = new SslStream(stream);
+					secureStream.AuthenticateAsClient(Host);
+					
+					if(secureStream.IsAuthenticated)
+					{
+						Utils.Logger.Network("SSL activated");
+					}
+					else
+						return false;
+				}
+
 				Utils.Logger.Network("Connected");
-				return stream.IsAuthenticated;
+				return true;
 			}
 			else
 				return false;

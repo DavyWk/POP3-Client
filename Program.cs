@@ -111,7 +111,7 @@ namespace POP3_Client
 //			}
 			#endregion
 			
-			POP3Client c = new POP3Client(host,port);
+			POP3Client c = new POP3Client(host,port,true);
 			c.Connect();
 			
 			c.Close();
