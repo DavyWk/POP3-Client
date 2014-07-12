@@ -12,13 +12,15 @@
 		
 		public static string RemoveHeader(string s)
 		{
-			int index;
+			int index = s.IndexOf(" ") + 1;
+			s = s.Trim();
 			
-			if((index = s.IndexOf(Constants.OK)) > 0)
+			// 0 because it should be the first character in the string.
+			if(s.StartsWith(Constants.OK))
 			{
 				s = s.Substring(index,s.Length - index);
 			}
-			else if((index = s.IndexOf(Constants.ERROR)) > 0)
+			else if(s.StartsWith(Constants.ERROR))
 			{
 				s = s.Substring(index,s.Length - index);
 			}

@@ -14,6 +14,7 @@ namespace Utils
 		Success,
 		Unknown,
 		Inbox,
+		Exception,
 	}
 
 	public static class Logger
@@ -21,7 +22,7 @@ namespace Utils
 		
 		private static ELogTypes status;
 		private static TextWriter writer =  Console.Out;
-		private static string filePath;
+		private static string filePath = string.Empty;
 
 		/// <summary>
 		/// Retrieves the type of the last logged message.
@@ -60,6 +61,12 @@ namespace Utils
 			Command(false,format,args);
 		}
 
+		public static void Exception(Exception ex)
+		{
+			Error(ex.ToString());
+			Error(true,ex.ToString());
+			
+		}
 		public static void Info(bool file, string format, params object[] args)
 		{
 			if(file)
@@ -184,11 +191,11 @@ namespace Utils
 			Console.Write("<{0}> ", logType.ToString());
 			Console.ResetColor();
 			
-			LogFile(formatted);
+			Console.WriteLine(formatted);
 			
 		}
 		
-		// This will only be called if the logger is writing to file.
+
 		public static void LogFile(ELogTypes logType,string format, params object[] args)
 		{
 			string formatted = string.Format(format,args);
@@ -202,23 +209,16 @@ namespace Utils
 			LogFile(text);
 		}
 		
-		public static void LogFile(string text)
+		
+		private static void LogFile(string text)
 		{
-			if(writer == Console.Out)
-			{
-				writer.WriteLine(text);
-			}
-			else
-			{
 				DateTime dt = DateTime.Now;
 				string time = dt.ToString("[MM-dd-yyyy@hh:mm]");
 				
 				writer.WriteLine("{0} {1}",time,text);
 				writer.Flush();
 				writer.Dispose();
-			}
-			
-			writer = Console.Out;
+
 		}
 		
 		public static void Bind(string path)
@@ -228,7 +228,6 @@ namespace Utils
 		
 		public static void UnBind()
 		{
-			writer = Console.Out;
 			filePath = string.Empty;
 		}
 	}

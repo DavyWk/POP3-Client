@@ -1,6 +1,7 @@
 ﻿using System;
 
 using Utils;
+using Core.Helpers;
 using Core.Network;
 
 namespace POP3_Client
@@ -11,16 +12,16 @@ namespace POP3_Client
 
 		static int Main(string[] args)
 		{
-			const string host = "pop.gmail.com"; // pop-mail.outlook.com
+			const string host = "pop-mail.outlook.com"; // pop-mail.outlook.com
 			const int port = 995;
 			
-			Logger.Bind(@"C:\Users\DavyOnly\Desktop\test.txt");
+			Logger.Bind(System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory),"errors.log"));
 			
 			Console.Title = "POP3 Client";
 			
 			POP3Client c = new POP3Client(host,port,true);
 			
-			Logger.Command(c.Connect());
+			Logger.Network(Core.Protocol.Protocol.RemoveHeader(c.Connect()));
 			
 			string address;
 			System.Security.SecureString password;
