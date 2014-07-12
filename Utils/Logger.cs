@@ -24,11 +24,11 @@ namespace Utils
 		private static string filePath;
 
 		/// <summary>
-		/// Retrieves the type of the last logged message
+		/// Retrieves the type of the last logged message.
 		/// </summary>
 		public static ELogTypes Status
 		{
-			get {return status;}
+			get { return status; }
 			private set { status = value;}
 		}
 		

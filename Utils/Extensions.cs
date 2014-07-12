@@ -60,5 +60,13 @@ namespace Utils
 			s = s.Trim();
 			return s.StartsWith(prefix,StringComparison.InvariantCultureIgnoreCase);
 		}
+		
+		public static void ThrowIfNullOrEmpty(this string s, string argName)
+		{
+			if(s == null)
+				throw new ArgumentNullException(argName);
+			if(s == string.Empty)
+				throw new ArgumentException("Argument cannot be an empty string",argName);
+		}
 	}
 }

@@ -6,6 +6,7 @@ using System.Net.Sockets;
 using System.Net.Security;
 using System.Collections.Generic;
 
+using Utils;
 using Core.Protocol;
 
 namespace Core.Network
@@ -25,10 +26,20 @@ namespace Core.Network
 		public POP3Client(string host, int port, bool ssl = false)
 		{
 			Host = host;
-			IP = Dns.GetHostAddresses(Host)[0];
 			Port = port;
 			client = new TcpClient();
 			SSL = ssl;
+			
+			IPAddress[] ips = Dns.GetHostAddresses(host);
+			foreach(IPAddress i in ips)
+			{
+				// Check for the first IPv4 address.
+				if(i.AddressFamily == AddressFamily.InterNetwork)
+				{
+					IP = i;
+					break;
+				}
+			}
 		}
 		
 		#region Implementing IDisposable
@@ -58,35 +69,46 @@ namespace Core.Network
 		}
 		#endregion
 		
-		public bool Connect()
+		public bool Connect(bool dummy = false)
+		{
+			return Protocol.Protocol.CheckHeader(Connect());
+		}
+		
+		/// <summary>
+		/// Connects to the POP3 server.
+		/// </summary>
+		/// <returns>The welcome message or an empty string if connection failed.</returns>
+		public string Connect()
 		{
 			client.Connect(new IPEndPoint(IP,Port));
 			
 			if(client.Connected)
 			{
 				stream = client.GetStream();
+				Utils.Logger.Network("Connected to {0}:{1}",Host,Port);
 				
 				if(SSL)
 				{
 					SslStream secureStream = new SslStream(stream);
 					secureStream.AuthenticateAsClient(Host);
 					
+					stream = secureStream;
+					
 					if(secureStream.IsAuthenticated)
-					{
 						Utils.Logger.Network("SSL activated");
-					}
 					else
-						return false;
+						return string.Empty;
 				}
 
-				Utils.Logger.Network("Connected");
-				return true;
+				return Receive(); // Server ready
 			}
 			else
-				return false;
+				return string.Empty;
 		}
 		
+		
 
+		#region Internal Send/Receive functions
 		public void SendCommand(string format, params object[] args)
 		{
 			SendCommand(string.Format(format,args));
@@ -95,6 +117,7 @@ namespace Core.Network
 		public void SendCommand(string command)
 		{
 			stream.Write(Encoding.UTF8.GetBytes(command + Constants.Terminator), 0, command.Length + Constants.TerminatorLength);
+			stream.Flush();
 		}
 		
 		public List<string> ReceiveMultiLine()
@@ -138,9 +161,33 @@ namespace Core.Network
 				throw;
 			}
 			
-			response = Encoding.UTF8.GetString(received.ToArray());
+			response = Encoding.ASCII.GetString(received.ToArray());
 			
 			return response;
+		}
+		#endregion
+		
+		public string Login(string emailAddress, string password)
+		{
+			if(string.IsNullOrEmpty(emailAddress))
+				emailAddress.ThrowIfNullOrEmpty("emailAddress");
+			
+			if(string.IsNullOrEmpty(password))
+				password.ThrowIfNullOrEmpty("password");
+			
+			SendCommand("{0} {1}", Commands.USER, emailAddress);
+			Receive(); // "Send pass".
+			
+			SendCommand("{0} {1}",Commands.PASS, password);
+			
+			return Receive(); // Welcome message
+		}
+		
+		public string Quit()
+		{
+			SendCommand(Commands.QUIT);
+			
+			return Receive();
 		}
 	}
 }
