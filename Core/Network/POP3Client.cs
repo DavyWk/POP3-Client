@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using Utils;
 using Core.Helpers;
 using Core.Protocol;
+using Core.Protocol.CommandParser;
 
 namespace Core.Network
 {
@@ -17,11 +18,14 @@ namespace Core.Network
 		private bool disposed;
 		private TcpClient client;
 		private Stream stream;
+		private const string invalidOperation =
+			"Cannot execute this command in the {0} state";
 		
 		public int Port { get; private set; }
 		public string Host { get; private set; }
 		public IPAddress IP { get; private set; }
 		public bool SSL { get; private set; }
+		public bool Connected { get; private set; }
 		
 		public EStates State { get; private set; }
 		
@@ -64,14 +68,21 @@ namespace Core.Network
 			
 			if(disposing)
 			{
-				stream.Dispose();
-				client.Close();
+				if(stream != null)
+					stream.Dispose();
+				
+				if(client != null)
+					client.Close();
 			}
 			
 			disposed = true;
 		}
 		#endregion
 		
+		/// <summary>
+		/// Connects to the POP3 server.
+		/// </summary>
+		/// <returns>True if the connection was sucessful, false otherwise.</returns>
 		public bool Connect(bool dummy = false)
 		{
 			return Protocol.Protocol.CheckHeader(Connect());
@@ -83,12 +94,22 @@ namespace Core.Network
 		/// <returns>The welcome message or an empty string if connection failed.</returns>
 		public string Connect()
 		{
+			if(this.Connected)
+			{
+				Quit();
+				client.Close();
+				stream.Dispose();
+				
+				client = new TcpClient();
+			}
+				
 			client.Connect(new IPEndPoint(IP,Port));
 			
 			if(client.Connected)
 			{
 				stream = client.GetStream();
 				Utils.Logger.Network("Connected to {0}:{1}",Host,Port);
+				this.Connected = true;
 				
 				if(SSL)
 				{
@@ -120,7 +141,11 @@ namespace Core.Network
 		
 		public void SendCommand(string command)
 		{
-			stream.Write(Encoding.UTF8.GetBytes(command + Constants.Terminator), 0, command.Length + Constants.TerminatorLength);
+			if(!this.Connected)
+				return;
+			
+			byte[] buffer = Encoding.UTF8.GetBytes(command + Constants.Terminator);
+			stream.Write(buffer, 0, buffer.Length);
 			stream.Flush();
 		}
 		
@@ -159,13 +184,15 @@ namespace Core.Network
 			}
 			catch (SocketException ex)
 			{
-				// Need to implement some kind of
-				// OnError delegate to log
-				// the exception.
-				throw;
+				// SocketException can mess everything up
+				// so just log it and exit.
+				Logger.Exception(ex);
+				Logger.Error("Exiting ...");
+				Console.ReadLine();
+				Environment.Exit(1);
 			}
 			
-			response = Encoding.ASCII.GetString(received.ToArray());
+			response = Encoding.UTF8.GetString(received.ToArray());
 			
 			return response;
 		}
@@ -174,7 +201,7 @@ namespace Core.Network
 		public string Login(string emailAddress, string password)
 		{
 			if(State != EStates.Authorization)
-				throw new InvalidOperationException(string.Format("Cannot execute this command during the {0} state",State.ToString()));
+				throw new InvalidOperationException(string.Format(invalidOperation,State.ToString()));
 			
 			if(string.IsNullOrEmpty(emailAddress))
 				emailAddress.ThrowIfNullOrEmpty("emailAddress");
@@ -195,6 +222,11 @@ namespace Core.Network
 			return response;
 		}
 		
+		/// <summary>
+		/// Disconnects from the POP3 server.
+		/// WARNING: DOES NOT CLOSE THE CONNECTION
+		/// </summary>
+		/// <returns></returns>
 		public string Quit()
 		{
 			// POP3 logic ... cf. RFC 1939 p10
@@ -204,6 +236,22 @@ namespace Core.Network
 			SendCommand(Commands.QUIT);
 			
 			return Receive();
+		}
+		
+		/// <summary>
+		/// Gets the messages stored on the server.
+		/// </summary>
+		/// <returns>A dictorinary of key-value pair where the key is the ID of the message and the </returns>
+		public Dictionary<int,int> ListMessages()
+		{
+			if(State != EStates.Transaction)
+				throw new InvalidOperationException(string.Format(invalidOperation,State.ToString()));
+			
+			SendCommand(Commands.LIST);
+			
+			List<string> received = ReceiveMultiLine();
+			
+			return ListParser.Parse(received);
 		}
 	}
 }

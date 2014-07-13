@@ -39,11 +39,12 @@
 		/// </summary>
 		public const string DELETE = "DELE";
 		
+		
 		// Authorization OR Update state.
 		
 		/// <summary>
 		/// C: QUIT
-		/// S: tells what changed
+		/// S: Tells what changed
 		/// </summary>
 		public const string QUIT = "QUIT";
 		
