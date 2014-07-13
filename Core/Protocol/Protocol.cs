@@ -4,7 +4,7 @@
 	{
 		public static bool CheckHeader(string s)
 		{
-			if(s.StartsWith(Constants.OK))
+			if(s.Trim().StartsWith(Constants.OK))
 				return true;
 			else
 				return false;

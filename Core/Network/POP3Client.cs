@@ -7,6 +7,7 @@ using System.Net.Security;
 using System.Collections.Generic;
 
 using Utils;
+using Core.Helpers;
 using Core.Protocol;
 
 namespace Core.Network
@@ -21,6 +22,8 @@ namespace Core.Network
 		public string Host { get; private set; }
 		public IPAddress IP { get; private set; }
 		public bool SSL { get; private set; }
+		
+		public EStates State { get; private set; }
 		
 		
 		public POP3Client(string host, int port, bool ssl = false)
@@ -99,7 +102,8 @@ namespace Core.Network
 					else
 						return string.Empty;
 				}
-
+				State = EStates.Authorization;
+				
 				return Receive(); // Server ready
 			}
 			else
@@ -169,6 +173,9 @@ namespace Core.Network
 		
 		public string Login(string emailAddress, string password)
 		{
+			if(State != EStates.Authorization)
+				throw new InvalidOperationException(string.Format("Cannot execute this command during the {0} state",State.ToString()));
+			
 			if(string.IsNullOrEmpty(emailAddress))
 				emailAddress.ThrowIfNullOrEmpty("emailAddress");
 			
@@ -180,11 +187,20 @@ namespace Core.Network
 			
 			SendCommand("{0} {1}",Commands.PASS, password);
 			
-			return Receive(); // Welcome message
+			string response = Receive();
+
+			if(Protocol.Protocol.CheckHeader(response))
+				State = EStates.Transaction;
+			
+			return response;
 		}
 		
 		public string Quit()
 		{
+			// POP3 logic ... cf. RFC 1939 p10
+			if(State == EStates.Transaction)
+				State = EStates.Update;
+			
 			SendCommand(Commands.QUIT);
 			
 			return Receive();

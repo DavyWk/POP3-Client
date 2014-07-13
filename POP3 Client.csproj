@@ -65,6 +65,7 @@
     <Compile Include="Core\Network\POP3Client.cs" />
     <Compile Include="Core\Protocol\Commands.cs" />
     <Compile Include="Core\Protocol\Constants.cs" />
+    <Compile Include="Core\Protocol\EStates.cs" />
     <Compile Include="Core\Protocol\Protocol.cs" />
     <Compile Include="Core\Helpers\Helpers.cs" />
     <Compile Include="Program.cs" />
