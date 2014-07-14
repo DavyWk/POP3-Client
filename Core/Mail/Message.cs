@@ -20,6 +20,7 @@ namespace Core.Mail
 		public DateTime ArrivalTime;
 		public bool ContainsHTML;
 		
+		// Rewrite this with a static MessageParser class.
 		public Message(List<string> message)
 		{
 			// Default initialization.
@@ -27,7 +28,7 @@ namespace Core.Mail
 			Receivers = new List<Person>();
 			Sender = new Person(string.Empty,string.Empty);
 			Body = string.Empty;
-			Subject = string.Empty;
+			Subject = "(No suject)";
 			CharSet = Encoding.UTF8;
 			ArrivalTime = new DateTime(0);
 			ContainsHTML = false;
@@ -57,23 +58,43 @@ namespace Core.Mail
 				
 				else if(line.StartsWith("To:"))
 				{
+					int lastIndex = 0;
 					do
 					{
-						if((index = line.IndexOf('"',index)) > 0)
+						lastIndex = index;
+						if((index = line.IndexOfAny(new char[] { '"','<'},index)) > 0)
 						{
 							Person receiver = new Person();
 							receiver.Name = line.SubstringEx('"','"',index);
+							
+							// Just in case.
+							if(receiver.Name == string.Empty)
+								receiver.Name = line.SubstringEx(' ',' ');
+							
 							receiver.EMailAddress = line.SubstringEx('<','>',index);
 							
 							Receivers.Add(receiver);
 						}
 						else
 						{
+							
 							if(index == -1)
 								index = 0;
 							
-							index = line.IndexOf(' ',index);
-							Receivers.Add(new Person(string.Empty,line.Substring(index)));
+							index = line.IndexOfAny(new char[] {' ', ','},lastIndex);
+							
+
+							// If there is nothing atfer this one.
+							if((index == -1) || (lastIndex == index))
+							{
+								s = string.Empty;
+								index = line.Length;
+								Receivers.Add(new Person(string.Empty,s));
+								break;
+							}
+							
+							s = line.Substring(index + 1);
+							Receivers.Add(new Person(string.Empty,s));
 						}
 					} while ((index = line.IndexOf(',',index)) > 0);
 					
@@ -82,7 +103,10 @@ namespace Core.Mail
 				else if(line.StartsWith("Subject:"))
 				{
 					index = line.IndexOf(':') + 2; // skip space
-					Subject = line.Substring(index,line.Length - index);
+					
+					// In case there is no subject.
+					if(index < line.Length)
+						Subject = line.Substring(index,line.Length - index);
 				}
 				
 				else if(line.StartsWith("Date:"))
@@ -91,33 +115,81 @@ namespace Core.Mail
 					
 					index = line.IndexOf(' ') + 1;
 					string date = line.Substring(index,line.Length - index);
-					index = date.LastIndexOfAny(new char[] {'-','+', ' '}) + 1;
+					
+					// If there is a double space, delete one space.
+					if(date.IndexOf("  ") > 0)
+						date = date.Remove(date.IndexOf("  "),1);
+					
+					date = date.Trim();
+					date = date.Replace(",","");
+					
+					// Special parenthesis like  02:31:57 +0000 (GMT+00:00)
+					index = date.LastIndexOf('(');
+					if(index == -1)
+						index = date.LastIndexOfAny(new char[] { '(','-','+',' '});
 					
 					// In case there are parenthesis after the
 					// UTC offset.
+					//if(date[index] == '(')
+					//	index--;
+					
 					int lastSpace = date.LastIndexOf(' ') - 1;
 					if((lastSpace == -2) || (lastSpace < index))
-						lastSpace = date.Length;
+						lastSpace = date.Length - 1;
 					
-					string utcOffset = date.Substring(index,lastSpace - index);
+					// Remove stuff between parentheses.
+					if((date[index] == '(') && (date[lastSpace] == ')'))
+					{
+						date = date.Remove(index,date.Length - index);
+						
+						index = date.LastIndexOfAny(new char[] {'-','+'});
+						lastSpace = date.Length - 1;
+					}
+					
+					string utcOffset = string.Empty;
+					if((date[index] == '-') || (date[index] == '+'))
+					{
+						index++;
+						utcOffset = date.Substring(index,lastSpace - index);
+						index--;
+						
+						date = date.Substring(0,index);
+					}
+					
 					int offsetHours = 0;
 					int.TryParse(utcOffset, out offsetHours);
 					offsetHours /= 100;
-					
 					TimeSpan offset = new TimeSpan(Math.Abs(offsetHours),0,0);
 					
+					// Remove any extra characters at the end of the string.
+					for(int i = date.Length - 1; i > -1; i--)
+					{
+						if(char.IsDigit(date[i]))
+						{
+							i++;
+							date = date.Remove(i,date.Length - i);
+							break;
+						}
+					}
+					
+					
+					// Checks for different date format.
 					int day;
 					int.TryParse(date.Substring(0,1), out day);
 					if(day > 0)
-					{
 						dateFormat = dateFormat.Replace("ddd dd","d");
-					}
 					
-					date = date.Substring(0,index - 1).Trim();
-					date = date.Replace(",","");
+					day = 0;
+					
+					int.TryParse(date.Substring(4,2),out day);
+					if((day > 0) && (day < 10))
+						dateFormat = dateFormat.Replace("ddd dd", "ddd d");
+					
+					date = date.Trim();
+
 					
 					// Here, dt is equal to a default DateTime.
-					DateTime dt = ArrivalTime;
+					DateTime dt = new DateTime(0);
 					try
 					{
 						dt = DateTime.ParseExact(date,dateFormat,System.Globalization.CultureInfo.InvariantCulture);
@@ -139,13 +211,22 @@ namespace Core.Mail
 				else if(line.StartsWithEx("Content-Type:"))
 				{
 					if(line.Contains("text/html"))
-					   {
-					   	index = line.IndexOf('=') + 1; // charset=
-					   	s = line.Substring(index, line.Length - index);
-					   	CharSet = Encoding.GetEncoding(s);
-					   }
-
+					{
+						index = line.IndexOf('=') + 1; // charset=
+						
+						s = line.SubstringEx('"', '"',index);
+						
+						if(s == string.Empty)
+							s = line.Substring(index, line.Length - index);
+						
+						// No charset
+						if(s.StartsWith("Content-Type:"))
+							continue;
+						
+						CharSet = Encoding.GetEncoding(s);
 					}
+
+				}
 				
 				else if(line.StartsWith("X-OriginalArrivalTime:"))
 				{
@@ -165,33 +246,33 @@ namespace Core.Mail
 			{
 				if(message[i].StartsWith("<html>") ||
 				   message[i].StartsWith("<!DOCTYPE html"))
-				   htmlBegin = i;
-				   if(message[i].StartsWith("</html>"))
-				   	htmlEnd = i;
-				   
-				   if(i > bodyStart)
-				   {
-				   	// No idea why, but sometimes there are equal signs
-				   	// at the end of the line.
-				   	if(message[i].EndsWith("="))
-				   		message[i] = message[i].Remove(message[i].Length -1,1);
-				   	
-				   	lBody.Add(message[i]);
-				   	
-				   	// If bodyStart is already set, don't need to
-				   	// check again.
-				   	continue;
-				   }
-				   
-				   if(message[i].StartsWith("X-OriginalArrivalTime:"))
-				   {
-				   	// Skips blank line after X-OriginalArrivalTime.
-				   	bodyStart = i + 1;
-				   }
-				   
+					htmlBegin = i;
+				if(message[i].StartsWith("</html>"))
+					htmlEnd = i;
+				
+				// No idea why, but sometimes there are equal signs
+				// at the end of the line.
+				if(message[i].EndsWith("="))
+					message[i] = message[i].Remove(message[i].Length - 1, 1);
+				
+				if(i > bodyStart)
+				{			
+					lBody.Add(message[i]);
+					
+					// If bodyStart is already set, don't need to
+					// check again.
+					continue;
 				}
+				
+				if(message[i].StartsWith("X-OriginalArrivalTime:"))
+				{ // not accurate.
+					// Skips blank line after X-OriginalArrivalTime.
+					bodyStart = i + 1;
+				}
+				
+			}
 			
-			if((htmlEnd != -1) && (htmlEnd != -1))
+			if((htmlBegin != -1) && (htmlEnd != -1) && (htmlBegin < htmlEnd))
 			{
 				ContainsHTML = true;
 				lBody = message.GetRange(htmlBegin,htmlEnd - htmlBegin);
@@ -201,8 +282,8 @@ namespace Core.Mail
 			Body = string.Join("",lBody.ToArray());
 			
 			
-			// Not very accurate. 
-			byte[] raw = CharSet.GetBytes(Body);
+			// Not very accurate.
+			byte[] raw = Encoding.UTF8.GetBytes(Body);
 			Body = CharSet.GetString(raw);
 		}
 	}

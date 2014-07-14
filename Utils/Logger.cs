@@ -63,7 +63,7 @@ namespace Utils
 
 		public static void Exception(Exception ex)
 		{
-			Error(ex.ToString());
+			Error(ex.Message);
 			Error(true,ex.ToString());
 			
 		}
@@ -218,7 +218,7 @@ namespace Utils
 				writer.WriteLine("{0} {1}",time,text);
 				writer.Flush();
 				writer.Dispose();
-
+				writer = Console.Out;
 		}
 		
 		public static void Bind(string path)

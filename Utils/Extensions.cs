@@ -41,6 +41,9 @@ namespace Utils
 			int bIndex = s.IndexOf(begin,startIndex) + 1; // +1: doesn't include the begin character
 			int eIndex = s.IndexOf(end,bIndex);
 			
+			if((bIndex == -1) || (eIndex == -1))
+				return string.Empty;
+			
 			return s.Substring(bIndex,eIndex - bIndex);
 		}
 		
@@ -67,7 +70,7 @@ namespace Utils
 			if(s == null)
 				throw new ArgumentNullException(argName);
 			if(s == string.Empty)
-				throw new ArgumentException("Argument cannot be an empty string",argName);
+				throw new ArgumentException("Argument cannot be an empty string","argName");
 		}
 		
 		public static bool Contains(this char[] array, char character)

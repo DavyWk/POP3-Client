@@ -144,10 +144,26 @@ namespace Core.Network
 		{
 			if(!this.Connected)
 				return;
-			
-			byte[] buffer = Encoding.UTF8.GetBytes(command + Constants.Terminator);
-			stream.Write(buffer, 0, buffer.Length);
-			stream.Flush();
+			try
+			{
+				byte[] buffer = Encoding.UTF8.GetBytes(command + Constants.Terminator);
+				stream.Write(buffer, 0, buffer.Length);
+				stream.Flush();
+			}
+			catch (Exception ex)
+			{
+				if(ex is SocketException || ex is IOException)
+				{
+									Logger.Exception(ex);
+				Console.WriteLine("Exiting ...");
+				Console.ReadLine();
+				Environment.Exit(1);
+				}
+				else
+					throw;
+
+			}
+
 		}
 		
 		public List<string> ReceiveMultiLine()
