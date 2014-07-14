@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Security;
 using System.Runtime.InteropServices;
 
@@ -67,6 +68,35 @@ namespace Utils
 				throw new ArgumentNullException(argName);
 			if(s == string.Empty)
 				throw new ArgumentException("Argument cannot be an empty string",argName);
+		}
+		
+		public static bool Contains(this char[] array, char character)
+		{
+			foreach(char c in array)
+			{
+				if(c == character)
+					return true;
+			}
+			
+			return false;
+		}
+		
+		public static string CleanPath(this string s)
+		{
+			int index = 0;
+			char[] invalidChars = Path.GetInvalidFileNameChars();
+			char[] chars = s.ToCharArray();
+			
+			foreach(char c in chars)
+			{
+				if(invalidChars.Contains(c))
+				{
+					index = s.IndexOf(c,index);
+					s = s.Remove(index,1);
+				}
+			}
+			
+			return s;
 		}
 	}
 }

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Collections.Generic;
 
 using Utils;
@@ -18,7 +19,7 @@ namespace POP3_Client
 			const string host = "pop-mail.outlook.com"; // pop-mail.outlook.com
 			const int port = 995;
 			
-			string logFile = System.IO.Path.Combine(
+			string logFile = Path.Combine(
 				Environment.GetFolderPath(Environment.SpecialFolder.Desktop),
 				"errors.log");
 			
@@ -44,11 +45,28 @@ namespace POP3_Client
 				Environment.Exit(1);
 			}
 			
+			int size = 0;
+			int nb = 0;
+			
 			foreach (KeyValuePair<int,int> kv in c.ListMessages())
-				Logger.Inbox("{0} - {1} bytes", kv.Key,kv.Value);
+			{
+				size += kv.Value;
+				nb++;
+			}
+			Logger.Inbox("{0} messages, {1} bytes total.",nb,size);
 			
 			Message m = c.GetMessage(1);
-			Logger.Info(m.Body);
+			if(m.ContainsHTML) // can't print html in console
+			{
+				string path = Path.Combine(Environment.GetFolderPath(
+					Environment.SpecialFolder.DesktopDirectory),
+					string.Format("{0}.html",m.Subject.CleanPath()));
+				
+				File.WriteAllText(path,m.Body);
+				System.Diagnostics.Process.Start(path);
+			}
+			else // can't print HTML content in console
+				Logger.Info(m.Body);	
 			
 			Logger.Command(c.Quit());
 

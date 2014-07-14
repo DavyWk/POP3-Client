@@ -18,6 +18,7 @@ namespace Core.Mail
 		public string Subject;
 		public Encoding CharSet;
 		public DateTime ArrivalTime;
+		public bool ContainsHTML;
 		
 		public Message(List<string> message)
 		{
@@ -27,8 +28,9 @@ namespace Core.Mail
 			Sender = new Person(string.Empty,string.Empty);
 			Body = string.Empty;
 			Subject = string.Empty;
-			CharSet = Encoding.ASCII;
+			CharSet = Encoding.UTF8;
 			ArrivalTime = new DateTime(0);
+			ContainsHTML = false;
 			
 			foreach(string line in message)
 			{
@@ -89,16 +91,19 @@ namespace Core.Mail
 					
 					index = line.IndexOf(' ') + 1;
 					string date = line.Substring(index,line.Length - index);
-					index = date.LastIndexOfAny(new char[] {'-','+'}) + 1;
+					index = date.LastIndexOfAny(new char[] {'-','+', ' '}) + 1;
 					
 					// In case there are parenthesis after the
 					// UTC offset.
 					int lastSpace = date.LastIndexOf(' ') - 1;
 					if((lastSpace == -2) || (lastSpace < index))
-						lastSpace = date.Length - 1;
+						lastSpace = date.Length;
 					
 					string utcOffset = date.Substring(index,lastSpace - index);
-					int offsetHours = int.Parse(utcOffset) / 100;
+					int offsetHours = 0;
+					int.TryParse(utcOffset, out offsetHours);
+					offsetHours /= 100;
+					
 					TimeSpan offset = new TimeSpan(Math.Abs(offsetHours),0,0);
 					
 					int day;
@@ -131,12 +136,16 @@ namespace Core.Mail
 					ArrivalTime = dt;
 				}
 				
-				else if(line.StartsWithEx("Charset="))
+				else if(line.StartsWithEx("Content-Type:"))
 				{
-					index = line.IndexOf('=') + 1;
-					s = line.Substring(index, line.Length - index);
-					CharSet = Encoding.GetEncoding(s);
-				}
+					if(line.Contains("text/html"))
+					   {
+					   	index = line.IndexOf('=') + 1; // charset=
+					   	s = line.Substring(index, line.Length - index);
+					   	CharSet = Encoding.GetEncoding(s);
+					   }
+
+					}
 				
 				else if(line.StartsWith("X-OriginalArrivalTime:"))
 				{
@@ -150,29 +159,51 @@ namespace Core.Mail
 			// The size of the mail should not exeed Int32.MaxValue.
 			int bodyStart = Int32.MaxValue;
 			
+			int htmlBegin = -1;
+			int htmlEnd = -1;
 			for(int i = 0; i < message.Count;i++)
 			{
-				if(i > bodyStart)
-				{
-					lBody.Add(message[i]);
-					
-					// If bodyStart is already set, don't need to
-					// check again.
-					continue;
+				if(message[i].StartsWith("<html>") ||
+				   message[i].StartsWith("<!DOCTYPE html"))
+				   htmlBegin = i;
+				   if(message[i].StartsWith("</html>"))
+				   	htmlEnd = i;
+				   
+				   if(i > bodyStart)
+				   {
+				   	// No idea why, but sometimes there are equal signs
+				   	// at the end of the line.
+				   	if(message[i].EndsWith("="))
+				   		message[i] = message[i].Remove(message[i].Length -1,1);
+				   	
+				   	lBody.Add(message[i]);
+				   	
+				   	// If bodyStart is already set, don't need to
+				   	// check again.
+				   	continue;
+				   }
+				   
+				   if(message[i].StartsWith("X-OriginalArrivalTime:"))
+				   {
+				   	// Skips blank line after X-OriginalArrivalTime.
+				   	bodyStart = i + 1;
+				   }
+				   
 				}
-				
-				if(message[i].StartsWith("X-OriginalArrivalTime:"))
-				{
-					// Skips blank line after X-OriginalArrivalTime.
-					bodyStart = i + 1;
-					continue;
-				}
-				
+			
+			if((htmlEnd != -1) && (htmlEnd != -1))
+			{
+				ContainsHTML = true;
+				lBody = message.GetRange(htmlBegin,htmlEnd - htmlBegin);
 			}
 			
+			
 			Body = string.Join("",lBody.ToArray());
-
-
+			
+			
+			// Not very accurate. 
+			byte[] raw = CharSet.GetBytes(Body);
+			Body = CharSet.GetString(raw);
 		}
 	}
 
