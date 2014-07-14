@@ -89,9 +89,15 @@ namespace Core.Mail
 					
 					index = line.IndexOf(' ') + 1;
 					string date = line.Substring(index,line.Length - index);
-					index = date.LastIndexOfAny(new char[] {'-','+'});
+					index = date.LastIndexOfAny(new char[] {'-','+'}) + 1;
 					
-					string utcOffset = date.Substring(index,date.Length - index);
+					// In case there are parenthesis after the
+					// UTC offset.
+					int lastSpace = date.LastIndexOf(' ') - 1;
+					if((lastSpace == -2) || (lastSpace < index))
+						lastSpace = date.Length - 1;
+					
+					string utcOffset = date.Substring(index,lastSpace - index);
 					int offsetHours = int.Parse(utcOffset) / 100;
 					TimeSpan offset = new TimeSpan(Math.Abs(offsetHours),0,0);
 					
@@ -102,7 +108,7 @@ namespace Core.Mail
 						dateFormat = dateFormat.Replace("ddd dd","d");
 					}
 					
-					date = date.Substring(0,index).Trim();
+					date = date.Substring(0,index - 1).Trim();
 					date = date.Replace(",","");
 					
 					// Here, dt is equal to a default DateTime.
@@ -117,7 +123,9 @@ namespace Core.Mail
 					}
 					catch(FormatException ex)
 					{
-						Logger.Error("FormatException: {0} {1}",ex.Message,ex.StackTrace);
+						Logger.Exception(ex);
+						ArrivalTime = new DateTime(0);
+						continue;
 					}
 					
 					ArrivalTime = dt;

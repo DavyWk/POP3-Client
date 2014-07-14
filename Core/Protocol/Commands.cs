@@ -39,6 +39,12 @@
 		/// </summary>
 		public const string DELETE = "DELE";
 		
+		/// <summary>
+		/// C: NOOP
+		/// S: OK/ERR
+		/// </summary>
+		public const string NoOperation = "NOOP";
+		
 		
 		// Authorization OR Update state.
 		

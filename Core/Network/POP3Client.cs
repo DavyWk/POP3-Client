@@ -7,6 +7,7 @@ using System.Net.Security;
 using System.Collections.Generic;
 
 using Utils;
+using Core.Mail;
 using Core.Helpers;
 using Core.Protocol;
 using Core.Protocol.CommandParser;
@@ -102,7 +103,7 @@ namespace Core.Network
 				
 				client = new TcpClient();
 			}
-				
+			
 			client.Connect(new IPEndPoint(IP,Port));
 			
 			if(client.Connected)
@@ -159,6 +160,8 @@ namespace Core.Network
 				
 				if(line == Constants.MultiLineTerminator)
 					break;
+				if(line.StartsWith(Constants.ERROR))
+					break;
 				
 				received.Add(line);
 			}
@@ -201,7 +204,8 @@ namespace Core.Network
 		public string Login(string emailAddress, string password)
 		{
 			if(State != EStates.Authorization)
-				throw new InvalidOperationException(string.Format(invalidOperation,State.ToString()));
+				throw new InvalidOperationException(
+					string.Format(invalidOperation,State.ToString()));
 			
 			if(string.IsNullOrEmpty(emailAddress))
 				emailAddress.ThrowIfNullOrEmpty("emailAddress");
@@ -217,8 +221,18 @@ namespace Core.Network
 			string response = Receive();
 
 			if(Protocol.Protocol.CheckHeader(response))
+			{
+				
+				SendCommand(Commands.NoOperation);
+				
+				string check = Receive();
+				if(!Protocol.Protocol.CheckHeader(check))
+				{
+					return check; // Login limit ?
+				}
 				State = EStates.Transaction;
-			
+			}
+
 			return response;
 		}
 		
@@ -226,7 +240,7 @@ namespace Core.Network
 		/// Disconnects from the POP3 server.
 		/// WARNING: DOES NOT CLOSE THE CONNECTION
 		/// </summary>
-		/// <returns></returns>
+		/// <returns>The server's exit meassage</returns>
 		public string Quit()
 		{
 			// POP3 logic ... cf. RFC 1939 p10
@@ -245,13 +259,38 @@ namespace Core.Network
 		public Dictionary<int,int> ListMessages()
 		{
 			if(State != EStates.Transaction)
-				throw new InvalidOperationException(string.Format(invalidOperation,State.ToString()));
+				throw new InvalidOperationException(
+					string.Format(invalidOperation,State.ToString()));
 			
 			SendCommand(Commands.LIST);
-			
+			Receive();
 			List<string> received = ReceiveMultiLine();
 			
 			return ListParser.Parse(received);
+		}
+		
+		
+		public List<Message> GetMessages()
+		{
+			List<Message> messageList = new List<Message>();
+			
+			foreach(KeyValuePair<int,int> kv in ListMessages())
+			{
+				messageList.Add(GetMessage(kv.Key));
+			}
+			
+			return messageList;
+		}
+		
+		public Message GetMessage(int messageID)
+		{
+			if(State != EStates.Transaction)
+				throw new InvalidOperationException(
+					string.Format(invalidOperation,State.ToString()));
+			
+			SendCommand("{0} {1}",Commands.RETRIEVE,messageID);
+			
+			return new Message(ReceiveMultiLine());
 		}
 	}
 }
