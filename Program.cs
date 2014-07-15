@@ -55,23 +55,7 @@ namespace POP3_Client
 			}
 			Logger.Inbox("{0} messages, {1} bytes total.",nb,size);
 			
-			//c.GetMessages();
-			
-			Logger.Info(m.Subject);
-			Logger.Info(m.Sender.EMailAddress);
-			if(m.ContainsHTML) // can't print html in console
-			{
-				string path = Path.Combine(Environment.GetFolderPath(
-					Environment.SpecialFolder.DesktopDirectory),
-					string.Format("{0}.html",m.Subject.CleanPath()));
-				
-				Logger.Info("Saving HTML file ...");				
-				File.WriteAllText(path,m.Body);
-				Logger.Info("Launching web browser ...");
-				System.Diagnostics.Process.Start(path);
-			}
-			else // can't print HTML content in console
-				Logger.Info(m.Body);	
+
 			
 			Logger.Command(c.Quit());
 

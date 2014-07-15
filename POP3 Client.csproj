@@ -59,8 +59,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Core\Mail\MessageParser.cs" />
     <Compile Include="Core\Protocol\CommandParsers\ListParser.cs" />
-    <Compile Include="Core\Mail\Message.cs" />
+    <Compile Include="Core\Mail\MailMessage.cs" />
     <Compile Include="Core\Mail\Person.cs" />
     <Compile Include="Core\Network\POP3Client.cs" />
     <Compile Include="Core\Protocol\Commands.cs" />

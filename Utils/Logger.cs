@@ -17,6 +17,7 @@ namespace Utils
 		Exception,
 	}
 
+	// Not thread-safe.
 	public static class Logger
 	{
 		

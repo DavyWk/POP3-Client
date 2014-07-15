@@ -73,6 +73,16 @@ namespace Utils
 				throw new ArgumentException("Argument cannot be an empty string","argName");
 		}
 		
+		public static bool Contains(this char[] array, char[] chars)
+		{
+			foreach(var c in chars)
+			{
+				if(array.Contains(c))
+					return true;
+			}
+			return false;
+		}
+		
 		public static bool Contains(this char[] array, char character)
 		{
 			foreach(char c in array)

@@ -154,7 +154,7 @@ namespace Core.Network
 			{
 				if(ex is SocketException || ex is IOException)
 				{
-									Logger.Exception(ex);
+				Logger.Exception(ex);
 				Console.WriteLine("Exiting ...");
 				Console.ReadLine();
 				Environment.Exit(1);
@@ -269,9 +269,9 @@ namespace Core.Network
 		}
 		
 		/// <summary>
-		/// Gets the messages stored on the server.
+		/// Gets the list  messages stored on the server.
 		/// </summary>
-		/// <returns>A dictorinary of key-value pair where the key is the ID of the message and the </returns>
+		/// <returns>A dictorinary of key-value pair where the key is the ID of the message and the value is the size.</returns>
 		public Dictionary<int,int> ListMessages()
 		{
 			if(State != EStates.Transaction)
@@ -286,9 +286,9 @@ namespace Core.Network
 		}
 		
 		
-		public List<Message> GetMessages()
+		public List<MailMessage> GetMessages()
 		{
-			List<Message> messageList = new List<Message>();
+			var messageList = new List<MailMessage>();
 			
 			foreach(KeyValuePair<int,int> kv in ListMessages())
 			{
@@ -298,7 +298,7 @@ namespace Core.Network
 			return messageList;
 		}
 		
-		public Message GetMessage(int messageID)
+		public MailMessage GetMessage(int messageID)
 		{
 			if(State != EStates.Transaction)
 				throw new InvalidOperationException(
@@ -306,7 +306,7 @@ namespace Core.Network
 			
 			SendCommand("{0} {1}",Commands.RETRIEVE,messageID);
 			
-			return new Message(ReceiveMultiLine());
+			return new MessageParser(ReceiveMultiLine()).Message;
 		}
 	}
 }
