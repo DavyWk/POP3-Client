@@ -55,7 +55,9 @@ namespace POP3_Client
 			}
 			Logger.Inbox("{0} messages, {1} bytes total.",nb,size);
 			
-
+	
+			foreach (var m in c.GetMessages())
+				Logger.Info(m.Sender.EMailAddress);
 			
 			Logger.Command(c.Quit());
 

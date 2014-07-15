@@ -37,6 +37,9 @@ namespace Core.Mail
 					break; // Not 100% accurate.
 			}
 			
+			// No idea why this happens.
+			if(m.Subject == null)
+				m.Subject = string.Empty;
 			
 			m.ContainsHTML = CheckHTML();
 			m.Body = GetBody(m.CharSet);
@@ -61,6 +64,8 @@ namespace Core.Mail
 				p.Name = s.SubstringEx(' ', ' ');
 			
 			p.EMailAddress = s.SubstringEx('<', '>');
+			if(p.EMailAddress == string.Empty)
+				p.EMailAddress = s.Substring(index,s.Length - index);
 			
 			return p;
 		}
@@ -115,7 +120,14 @@ namespace Core.Mail
 			int index = s.IndexOf(':') + 2;
 			
 			if((index != -1) && (index < s.Length))
-				return s.Substring(index, s.Length - index);
+			{
+				s = s.Substring(index,s.Length - index);
+				s = RemoveJunk(s);
+				if(s.Trim() == "RE:")
+					s = "RE: (No Subject)";
+				
+				return s.Trim();
+			}
 			else
 				return "(No Subject)";
 		}
@@ -251,7 +263,7 @@ namespace Core.Mail
 			for(int i = 0; i < lines.Count; i++)
 			{
 				if((htmlBegin == -1) && lines[i].StartsWith("<html>") ||
-				   lines[i].StartsWithEx("<!DOCTYPE html"))
+				   lines[i].StartsWithEx("<!DOCTYPE html>"))
 					htmlBegin = i;
 				if((htmlEnd == -1) && lines[i].StartsWith("</html>"))
 					htmlEnd = i;
@@ -338,7 +350,8 @@ namespace Core.Mail
 			int index = 0;
 			int lastIndex = 0;
 			
-			while((index = current.IndexOf("=",index)) > 0)
+			while((index < current.Length)
+			      && (index = current.IndexOf("=",index)) > 0)
 			{
 				if(lastIndex == index)
 				{
