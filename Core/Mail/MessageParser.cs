@@ -75,6 +75,9 @@ namespace Core.Mail
 			int index = 0;
 			int lastIndex = 0;
 			var receivers = new List<Person>();
+			s = s.Replace("To:",string.Empty).Trim();
+			s = RemoveJunk(s);
+			s = RemoveEncoding(s);
 			
 			do
 			{
@@ -342,6 +345,8 @@ namespace Core.Mail
 			return new KeyValuePair<int,int>(begin,end);
 		}
 		
+		
+		
 		private string RemoveJunk(string s)
 		{
 			const string hexChars = "ABCDEF0123456789";
@@ -388,6 +393,53 @@ namespace Core.Mail
 				lastIndex = index;
 			}
 			return current;
+		}
+		
+		private static string RemoveEncoding(string s)
+		{
+			// For strings like:
+			// "=?UTF-8?B?ZGF2eWRhdmVraw==?="
+			// "=?ENCODING?X?base64=?="
+			
+			int index = 0;
+			
+			if(!s.StartsWith("\"=?") && !s.StartsWith("=?"))
+				return s;
+			
+			string strCharset = s.SubstringEx('?', '?');
+			if(strCharset == string.Empty)
+				return s;
+			
+			string current = s.SubstringEx('"', '"');
+			// If there is no " "
+			if(current == string.Empty)
+				current = s.Substring(0, s.IndexOf(' '));
+				                      
+			Encoding charset = Encoding.GetEncoding(strCharset);
+			// Skip "=? at the beginning
+			index = current.IndexOf('?', 3) + 1;
+			// Skip the second '?'
+			index = current.IndexOf('?', index) + 1;
+			string original = current.Substring(0, index);
+			
+
+			// Two padding characters.
+			int endIndex = current.IndexOf("==",index) + 2;
+			// One padding character.
+			if(endIndex == 1)
+				endIndex = current.IndexOf("=", index) + 1;
+			if(endIndex != current.Length - 1)
+				return s; // CHECK FOR BASE64 STRING WITH NO HEADER
+			
+			string encoded = current.Substring(index, endIndex-index);
+			byte[] raw = Convert.FromBase64String(encoded);
+			string decoded = charset.GetString(raw);
+			
+			string ret = current.Replace(original, decoded);
+			ret = ret.Replace(encoded, string.Empty);
+			ret = ret.Replace("?=", string.Empty);
+			
+			return s.Replace(current, ret);		
 		}
 
 	}

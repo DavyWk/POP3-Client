@@ -154,10 +154,10 @@ namespace Core.Network
 			{
 				if(ex is SocketException || ex is IOException)
 				{
-				Logger.Exception(ex);
-				Console.WriteLine("Exiting ...");
-				Console.ReadLine();
-				Environment.Exit(1);
+					Logger.Exception(ex);
+					Console.WriteLine("Exiting ...");
+					Console.ReadLine();
+					Environment.Exit(1);
 				}
 				else
 					throw;
@@ -305,8 +305,11 @@ namespace Core.Network
 					string.Format(invalidOperation,State.ToString()));
 			
 			SendCommand("{0} {1}",Commands.RETRIEVE,messageID);
+			MailMessage m = new MailMessage();
 			
-			return new MessageParser(ReceiveMultiLine()).Message;
+			m = new MessageParser(ReceiveMultiLine()).Message;
+			
+			return m;
 		}
 	}
 }
