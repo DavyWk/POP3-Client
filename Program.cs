@@ -55,15 +55,18 @@ namespace POP3_Client
 			}
 			Logger.Inbox("{0} messages, {1} bytes total.",nb,size);
 			
-	
+
+			int i = 1;
 			foreach (var m in c.GetMessages())
-				Logger.Info(m.Sender.EMailAddress);
+			{
+				Logger.Debug(true,"{0}: {1}",i++,m.Sender.EMailAddress);
+			}
+
 			
 			Logger.Command(c.Quit());
 
 			
 			c.Close();
-
 			Console.ReadLine();
 			return 0;
 		}

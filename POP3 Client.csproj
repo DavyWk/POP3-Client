@@ -59,6 +59,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Core\Mail\MailDecoder.cs" />
     <Compile Include="Core\Mail\MessageParser.cs" />
     <Compile Include="Core\Protocol\CommandParsers\ListParser.cs" />
     <Compile Include="Core\Mail\MailMessage.cs" />

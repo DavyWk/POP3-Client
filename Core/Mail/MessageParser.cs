@@ -47,7 +47,7 @@ namespace Core.Mail
 			Message = m;
 		}
 		
-		private string GetID(string s)
+		private static string GetID(string s)
 		{
 			return s.SubstringEx('<','>');
 		}
@@ -55,8 +55,15 @@ namespace Core.Mail
 		private Person GetSender(string s)
 		{
 			Person p = new Person();
+			// In case there's something interesting on
+			// the following line.
+			int offset = lines.IndexOf(s);
+			string nextLine = lines[offset + 1];
 			
 			int index = s.IndexOf(':') + 2;
+			s = s.Substring(index, s.Length - index);
+			index = 0;
+			s = MailDecoder.RemoveEncoding(s);
 			
 			if(s.IndexOf('"') > 0)
 				p.Name = s.SubstringEx('"', '"');
@@ -64,20 +71,36 @@ namespace Core.Mail
 				p.Name = s.SubstringEx(' ', ' ');
 			
 			p.EMailAddress = s.SubstringEx('<', '>');
-			if(p.EMailAddress == string.Empty)
+			if(string.IsNullOrWhiteSpace(p.EMailAddress))
 				p.EMailAddress = s.Substring(index,s.Length - index);
+			
+			if(string.IsNullOrWhiteSpace(p.EMailAddress))
+			{ // Means that sender info is on the other line.
+				return GetSender(nextLine);
+			}
+			
+			if(nextLine.StartsWith("\t"))
+			{
+				nextLine = nextLine.Trim();
+				// If next line contains a valid email address.
+				if(nextLine.StartsWith("<")
+				   && nextLine.Contains("@")
+				   && nextLine.EndsWith(">"))
+				{
+					p.EMailAddress = nextLine.SubstringEx('<', '>');
+				}
+			}
 			
 			return p;
 		}
 		
-		private List<Person> GetReceivers(string s)
+		private static List<Person> GetReceivers(string s)
 		{
 			int index = 0;
 			int lastIndex = 0;
 			var receivers = new List<Person>();
 			s = s.Replace("To:",string.Empty).Trim();
-			s = RemoveJunk(s);
-			s = RemoveEncoding(s);
+			s = MailDecoder.RemoveEncoding(s);
 			
 			do
 			{
@@ -117,7 +140,7 @@ namespace Core.Mail
 			return receivers;
 		}
 		
-		private string GetSubject(string s)
+		private static string GetSubject(string s)
 		{
 			// Skip space.
 			int index = s.IndexOf(':') + 2;
@@ -125,7 +148,7 @@ namespace Core.Mail
 			if((index != -1) && (index < s.Length))
 			{
 				s = s.Substring(index,s.Length - index);
-				s = RemoveJunk(s);
+				s = MailDecoder.RemoveJunk(s);
 				if(s.Trim() == "RE:")
 					s = "RE: (No Subject)";
 				
@@ -135,9 +158,9 @@ namespace Core.Mail
 				return "(No Subject)";
 		}
 		
-		private DateTime GetDate(string s)
+		private static DateTime GetDate(string s)
 		{
-			s = RemoveJunk(s);
+			s = MailDecoder.RemoveJunk(s);
 			string dateFormat = "ddd dd MMM yyyy HH:mm:ss";
 			int index = s.IndexOf(':') + 1;
 			string date = s.Substring(index,s.Length - index);
@@ -265,17 +288,20 @@ namespace Core.Mail
 			int htmlEnd = -1;
 			for(int i = 0; i < lines.Count; i++)
 			{
-				if((htmlBegin == -1) && lines[i].StartsWith("<html>") ||
-				   lines[i].StartsWithEx("<!DOCTYPE html>"))
-					htmlBegin = i;
-				if((htmlEnd == -1) && lines[i].StartsWith("</html>"))
-					htmlEnd = i;
+
 				
 				if(i > bodyStart)
 				{
+					if((htmlBegin == -1) && lines[i].StartsWith("<html>") ||
+					   lines[i].StartsWithEx("<!DOCTYPE html>"))
+						htmlBegin = i;
+					if((htmlEnd == -1) && lines[i].StartsWith("</html>"))
+						htmlEnd = i;
+					
+					// Sometimes lines end with = sign.
 					if(lines[i].EndsWith("="))
 						lines[i] = lines[i].Remove(lines[i].Length -1 , 1);
-					lines[i] = RemoveJunk(lines[i]);
+					lines[i] = MailDecoder.RemoveJunk(lines[i]);
 					
 					lBody.Add(lines[i]);
 					
@@ -286,8 +312,13 @@ namespace Core.Mail
 				// Not accurate.
 				if(lines[i].StartsWith("X-OriginalArrivalTime:"))
 				{
-					// Skips blank line after X-OriginalArrivalTime.
-					bodyStart = i + 1;
+					// Skips blank lines after X-OriginalArrivalTime.
+					
+					int temp = i + 1;
+					while(string.IsNullOrWhiteSpace(lines[temp]))
+						temp++;
+					
+					bodyStart = temp;
 				}
 			}
 			
@@ -345,102 +376,6 @@ namespace Core.Mail
 			return new KeyValuePair<int,int>(begin,end);
 		}
 		
-		
-		
-		private string RemoveJunk(string s)
-		{
-			const string hexChars = "ABCDEF0123456789";
-			
-			string current = s;
-			int index = 0;
-			int lastIndex = 0;
-			
-			while((index < current.Length)
-			      && (index = current.IndexOf("=",index)) > 0)
-			{
-				if(lastIndex == index)
-				{
-					index++;
-					continue;
-				}
-				index++;
-				if((index + 2) > current.Length - 1)
-					continue;
-				
-				string hex = current.Substring(index, 2);
-				if(hex.ToCharArray().Contains(hexChars.ToCharArray()))
-				{
-					if(char.IsLetterOrDigit(hex[0])
-					   && char.IsLetterOrDigit(hex[1])
-					   || char.IsWhiteSpace(hex[1]))
-					{
-
-						int val = 0;
-						int.TryParse(hex,
-						             NumberStyles.AllowHexSpecifier,
-						             CultureInfo.InvariantCulture,
-						             out val);
-						if(val == 0)
-							continue;
-						
-						char c = (char)val;
-						string temp = c.ToString();
-						current = current.Remove(index - 1,1);
-						current = current.Replace(hex,temp);
-					}
-				}
-				index--;
-				lastIndex = index;
-			}
-			return current;
-		}
-		
-		private static string RemoveEncoding(string s)
-		{
-			// For strings like:
-			// "=?UTF-8?B?ZGF2eWRhdmVraw==?="
-			// "=?ENCODING?X?base64=?="
-			
-			int index = 0;
-			
-			if(!s.StartsWith("\"=?") && !s.StartsWith("=?"))
-				return s;
-			
-			string strCharset = s.SubstringEx('?', '?');
-			if(strCharset == string.Empty)
-				return s;
-			
-			string current = s.SubstringEx('"', '"');
-			// If there is no " "
-			if(current == string.Empty)
-				current = s.Substring(0, s.IndexOf(' '));
-				                      
-			Encoding charset = Encoding.GetEncoding(strCharset);
-			// Skip "=? at the beginning
-			index = current.IndexOf('?', 3) + 1;
-			// Skip the second '?'
-			index = current.IndexOf('?', index) + 1;
-			string original = current.Substring(0, index);
-			
-
-			// Two padding characters.
-			int endIndex = current.IndexOf("==",index) + 2;
-			// One padding character.
-			if(endIndex == 1)
-				endIndex = current.IndexOf("=", index) + 1;
-			if(endIndex != current.Length - 1)
-				return s; // CHECK FOR BASE64 STRING WITH NO HEADER
-			
-			string encoded = current.Substring(index, endIndex-index);
-			byte[] raw = Convert.FromBase64String(encoded);
-			string decoded = charset.GetString(raw);
-			
-			string ret = current.Replace(original, decoded);
-			ret = ret.Replace(encoded, string.Empty);
-			ret = ret.Replace("?=", string.Empty);
-			
-			return s.Replace(current, ret);		
-		}
 
 	}
 }

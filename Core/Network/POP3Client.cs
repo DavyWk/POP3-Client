@@ -201,14 +201,19 @@ namespace Core.Network
 						received.Add((byte)b);
 				}
 			}
-			catch (SocketException ex)
+			catch (Exception ex)
 			{
-				// SocketException can mess everything up
-				// so just log it and exit.
-				Logger.Exception(ex);
-				Logger.Error("Exiting ...");
-				Console.ReadLine();
-				Environment.Exit(1);
+				if(ex is SocketException || ex is IOException)
+				{
+					// SocketException can mess everything up
+					// so just log it and exit.
+					Logger.Exception(ex);
+					Logger.Error("Exiting ...");
+					Console.ReadLine();
+					Environment.Exit(1);
+				}
+				else
+					throw;
 			}
 			
 			response = Encoding.UTF8.GetString(received.ToArray());
