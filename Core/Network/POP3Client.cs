@@ -70,7 +70,7 @@ namespace Core.Network
 			if(disposing)
 			{
 				if(stream != null)
-					stream.Dispose();
+					stream.Close();
 				
 				if(client != null)
 					client.Close();
@@ -99,7 +99,8 @@ namespace Core.Network
 			{
 				Quit();
 				client.Close();
-				stream.Dispose();
+				stream.Close();
+				this.Connected = false;
 				
 				client = new TcpClient();
 			}

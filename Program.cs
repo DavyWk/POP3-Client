@@ -27,7 +27,7 @@ namespace POP3_Client
 			
 			Console.Title = "POP3 Client";
 			
-			POP3Client c = new POP3Client(host,port,true);
+			POP3Client c = new POP3Client(host, port, true);
 			
 			Logger.Network(Protocol.RemoveHeader(c.Connect()));
 			

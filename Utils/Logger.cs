@@ -22,7 +22,6 @@ namespace Utils
 	{
 		
 		private static ELogTypes status;
-		private static TextWriter writer =  Console.Out;
 		private static string filePath = string.Empty;
 
 		/// <summary>
@@ -34,25 +33,30 @@ namespace Utils
 			private set { status = value;}
 		}
 		
-		public static void Command(bool file, string format,params object[] args)
+		public static void Command(bool file, string format,
+		                           params object[] args)
 		{
-			string s = string.Format(format,args);
+			string s = string.Format(format,args).Trim();
 			
 			if(file)
 			{
 				if(Protocol.CheckHeader(s))
-					LogFile(ELogTypes.Success,s.Replace(Constants.OK,string.Empty).Trim());
+					LogFile(ELogTypes.Success,s.Replace(Constants.OK,
+					                                    string.Empty));
 				else if(s.StartsWith(Constants.ERROR))
-					LogFile(ELogTypes.Error,s.Replace(Constants.ERROR,string.Empty).Trim());
+					LogFile(ELogTypes.Error,s.Replace(Constants.ERROR,
+					                                  string.Empty));
 				else
 					LogFile(ELogTypes.Unknown,s);
 			}
 			else
 			{
 				if(Protocol.CheckHeader(s))
-					LogConsole(ELogTypes.Success,s.Replace(Constants.OK,string.Empty).Trim());
+					LogConsole(ELogTypes.Success,s.Replace(Constants.OK,
+					                                       string.Empty));
 				else if(s.StartsWith(Constants.ERROR))
-					LogConsole(ELogTypes.Error,s.Replace(Constants.ERROR,string.Empty).Trim());
+					LogConsole(ELogTypes.Error,s.Replace(Constants.ERROR,
+					                                     string.Empty));
 				else
 					LogConsole(ELogTypes.Unknown,s);
 			}
@@ -80,7 +84,8 @@ namespace Utils
 			Info(false,format,args);
 		}
 
-		public static void Network(bool file, string format, params object[] args)
+		public static void Network(bool file, string format,
+		                           params object[] args)
 		{
 			if(file)
 				LogFile(ELogTypes.Network,format,args);
@@ -116,7 +121,8 @@ namespace Utils
 			Error(false,format,args);
 		}
 
-		public static void Success(bool file, string format, params object[] args)
+		public static void Success(bool file, string format,
+		                           params object[] args)
 		{
 			if(file)
 				LogFile(ELogTypes.Success,format,args);
@@ -140,7 +146,8 @@ namespace Utils
 			Inbox(false, format, args);
 		}
 
-		public static void Unknown(bool file, string format, params object[] args)
+		public static void Unknown(bool file, string format,
+		                           params object[] args)
 		{
 			if(file)
 				LogFile(ELogTypes.Unknown,format,args);
@@ -153,7 +160,8 @@ namespace Utils
 		}
 		
 		
-		public static void LogConsole(ELogTypes logType, string format, params object[] args)
+		public static void LogConsole(ELogTypes logType, string format,
+		                              params object[] args)
 		{
 			ConsoleColor c = Console.ForegroundColor;
 			string formatted = string.Format(format,args);
@@ -197,15 +205,14 @@ namespace Utils
 		}
 		
 
-		public static void LogFile(ELogTypes logType,string format, params object[] args)
+		public static void LogFile(ELogTypes logType,string format,
+		                           params object[] args)
 		{
 			string formatted = string.Format(format,args);
-			string text = string.Format("<{0}> {1}",logType.ToString(),formatted);
+			string text = string.Format("<{0}> {1}",
+			                            logType.ToString(),formatted);
 			
 			status = logType;
-			
-			if((filePath != string.Empty) && (writer == Console.Out))
-			   writer = File.AppendText(filePath);
 			
 			LogFile(text);
 		}
@@ -213,13 +220,16 @@ namespace Utils
 		
 		private static void LogFile(string text)
 		{
-				DateTime dt = DateTime.Now;
-				string time = dt.ToString("[MM-dd-yyyy@hh:mm]");
-				
-				writer.WriteLine("{0} {1}",time,text);
-				writer.Flush();
-				writer.Dispose();
-				writer = Console.Out;
+			if(filePath == string.Empty)
+				return;
+			
+			DateTime dt = DateTime.Now;
+			string time = dt.ToString("[MM-dd-yyyy@hh:mm]");
+			
+			using(var sw = File.AppendText(filePath))
+			{
+				writer.WriteLine("{0} {1}", time, text);
+			}
 		}
 		
 		public static void Bind(string path)
