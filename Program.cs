@@ -36,9 +36,9 @@ namespace POP3_Client
 			Console.Write("Enter your address email: ");
 			address = Console.ReadLine();
 			Console.Write("Enter your passowrd: ");
-			password = Core.Helpers.Helpers.ReadPassword();
+			password = HelperMethods.ReadPassword();
 			
-			Logger.Command(c.Login(address,password.ToAsciiString()));
+			Logger.Command(c.Login(address, password.ToAsciiString()));
 			if(Logger.Status == ELogTypes.Error)
 			{
 				Console.ReadLine();

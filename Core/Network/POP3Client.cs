@@ -69,73 +69,35 @@ namespace Core.Network
 			
 			if(disposing)
 			{
-				if(stream != null)
-					stream.Close();
-				
-				if(client != null)
-					client.Close();
+				InternalClose();
 			}
 			
 			disposed = true;
 		}
+		
+		private void InternalClose()
+		{
+			if(stream != null)
+				stream.Close();
+			
+			if(client != null)
+				client.Close();
+		}
+		
+		/// <summary>
+		/// Only called on handled exceptions.
+		/// </summary>
+		private void InternalExit()
+		{
+			Logger.Error("Exiting ...");
+			Console.ReadLine();
+			Environment.Exit(1);
+		}
 		#endregion
 		
-		/// <summary>
-		/// Connects to the POP3 server.
-		/// </summary>
-		/// <returns>True if the connection was sucessful, false otherwise.</returns>
-		public bool Connect(bool dummy = false)
-		{
-			return Protocol.Protocol.CheckHeader(Connect());
-		}
-		
-		/// <summary>
-		/// Connects to the POP3 server.
-		/// </summary>
-		/// <returns>The welcome message or an empty string if connection failed.</returns>
-		public string Connect()
-		{
-			if(this.Connected)
-			{
-				Quit();
-				client.Close();
-				stream.Close();
-				this.Connected = false;
-				
-				client = new TcpClient();
-			}
-			
-			client.Connect(new IPEndPoint(IP,Port));
-			
-			if(client.Connected)
-			{
-				stream = client.GetStream();
-				Utils.Logger.Network("Connected to {0}:{1}",Host,Port);
-				this.Connected = true;
-				
-				if(SSL)
-				{
-					SslStream secureStream = new SslStream(stream);
-					secureStream.AuthenticateAsClient(Host);
-					
-					stream = secureStream;
-					
-					if(secureStream.IsAuthenticated)
-						Utils.Logger.Network("SSL activated");
-					else
-						return string.Empty;
-				}
-				State = EStates.Authorization;
-				
-				return Receive(); // Server ready
-			}
-			else
-				return string.Empty;
-		}
-		
-		
-
 		#region Internal Send/Receive functions
+		// These functions will be public until I finish the public API.
+		
 		public void SendCommand(string format, params object[] args)
 		{
 			SendCommand(string.Format(format,args));
@@ -145,9 +107,13 @@ namespace Core.Network
 		{
 			if(!this.Connected)
 				return;
+			
 			try
 			{
-				byte[] buffer = Encoding.UTF8.GetBytes(command + Constants.Terminator);
+				byte[] buffer = Encoding.UTF8.GetBytes(string.Concat(
+					command,
+					Constants.Terminator));
+				
 				stream.Write(buffer, 0, buffer.Length);
 				stream.Flush();
 			}
@@ -156,13 +122,10 @@ namespace Core.Network
 				if(ex is SocketException || ex is IOException)
 				{
 					Logger.Exception(ex);
-					Console.WriteLine("Exiting ...");
-					Console.ReadLine();
-					Environment.Exit(1);
+					InternalExit();
 				}
 				else
 					throw;
-
 			}
 
 		}
@@ -206,12 +169,8 @@ namespace Core.Network
 			{
 				if(ex is SocketException || ex is IOException)
 				{
-					// SocketException can mess everything up
-					// so just log it and exit.
 					Logger.Exception(ex);
-					Logger.Error("Exiting ...");
-					Console.ReadLine();
-					Environment.Exit(1);
+					InternalExit();
 				}
 				else
 					throw;
@@ -221,7 +180,64 @@ namespace Core.Network
 			
 			return response;
 		}
+		
 		#endregion
+		
+		/// <summary>
+		/// Connects to the POP3 server.
+		/// </summary>
+		/// <returns>True if the connection was sucessful, false otherwise.</returns>
+		public bool Connect(bool dummy = false)
+		{
+			return Protocol.Protocol.CheckHeader(Connect());
+		}
+		
+		/// <summary>
+		/// Connects to the POP3 server.
+		/// </summary>
+		/// <returns>The welcome message or an empty string if connection failed.</returns>
+		public string Connect()
+		{
+			if(this.Connected)
+			{
+				Quit();
+				InternalClose();
+				this.Connected = false;
+				
+				client = new TcpClient();
+			}
+			
+			client.Connect(new IPEndPoint(IP,Port));
+			
+			if(client.Connected)
+			{
+				stream = client.GetStream();
+				Utils.Logger.Network("Connected to {0}:{1}",Host,Port);
+				this.Connected = true;
+				
+				if(SSL)
+				{
+					SslStream secureStream = new SslStream(stream);
+					secureStream.AuthenticateAsClient(Host);
+					
+					stream = secureStream;
+					
+					if(secureStream.IsAuthenticated)
+						Utils.Logger.Network("SSL activated");
+					else
+						return string.Empty;
+				}
+				State = EStates.Authorization;
+				
+				return Receive(); // Server ready
+			}
+			else
+				return string.Empty;
+		}
+		
+		
+
+
 		
 		public string Login(string emailAddress, string password)
 		{
@@ -236,7 +252,8 @@ namespace Core.Network
 				password.ThrowIfNullOrEmpty("password");
 			
 			SendCommand("{0} {1}", Commands.USER, emailAddress);
-			Receive(); // "Send pass".
+			// "Send pass".
+			Receive();
 			
 			SendCommand("{0} {1}",Commands.PASS, password);
 			
@@ -244,7 +261,6 @@ namespace Core.Network
 
 			if(Protocol.Protocol.CheckHeader(response))
 			{
-				
 				SendCommand(Commands.NoOperation);
 				
 				string check = Receive();
@@ -277,7 +293,9 @@ namespace Core.Network
 		/// <summary>
 		/// Gets the list  messages stored on the server.
 		/// </summary>
-		/// <returns>A dictorinary of key-value pair where the key is the ID of the message and the value is the size.</returns>
+		/// <returns>A dictorinary of key-value pair where:<br/>
+		/// 	Key: ID of the message <br/>
+		/// 	Value: Size (in bytes)</returns>
 		public Dictionary<int,int> ListMessages()
 		{
 			if(State != EStates.Transaction)
@@ -292,9 +310,9 @@ namespace Core.Network
 		}
 		
 		
-		public List<MailMessage> GetMessages()
+		public List<POPMessage> GetMessages()
 		{
-			var messageList = new List<MailMessage>();
+			var messageList = new List<POPMessage>();
 			
 			foreach(KeyValuePair<int,int> kv in ListMessages())
 			{
@@ -304,14 +322,14 @@ namespace Core.Network
 			return messageList;
 		}
 		
-		public MailMessage GetMessage(int messageID)
+		public POPMessage GetMessage(int messageID)
 		{
 			if(State != EStates.Transaction)
 				throw new InvalidOperationException(
 					string.Format(invalidOperation,State.ToString()));
 			
 			SendCommand("{0} {1}",Commands.RETRIEVE,messageID);
-			MailMessage m = new MailMessage();
+			POPMessage m = new POPMessage();
 			
 			m = new MessageParser(ReceiveMultiLine()).Message;
 			

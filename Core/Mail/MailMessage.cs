@@ -9,8 +9,7 @@ using Utils;
 
 namespace Core.Mail
 {
-	// Maybe use System.Net.Mail.MailMessage instead.
-	public struct MailMessage
+	public struct POPMessage
 	{
 		public string ID;
 		public List<Person> Receivers;

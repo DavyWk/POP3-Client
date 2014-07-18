@@ -106,7 +106,8 @@ namespace Core.Mail
 				enc = Encoding.UTF8;
 			// Sometimes, UTF characters are encoded like:
 			// =C3=EA=90
-			char[] hexChars = { 'A', 'B', 'C', 'D', 'E', 'F',
+			// Should be const.
+			char[] HexChars = { 'A', 'B', 'C', 'D', 'E', 'F',
 				'0','1', '2', '3', '4', '5', '6', '7', '8', '9'};
 			
 			string current = s;
@@ -133,7 +134,7 @@ namespace Core.Mail
 				var hex = new List<byte>();
 				
 				string hexString = current.Substring(index, 2);
-				if(!hexString.ToCharArray().Contains(hexChars))
+				if(!hexString.ToCharArray().Contains(HexChars))
 					break;
 				byte b = (byte)GetCharFromHex(hexString);
 				if(b == 0)
@@ -148,7 +149,7 @@ namespace Core.Mail
 					index = next;
 					
 					hexString = current.Substring(index, 2);
-					if(!hexString.ToCharArray().Contains(hexChars))
+					if(!hexString.ToCharArray().Contains(HexChars))
 						break;
 					b = (byte)GetCharFromHex(hexString);
 					if(b == 0)

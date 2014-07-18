@@ -3,7 +3,7 @@ using System.Security;
 
 namespace Core.Helpers
 {
-    public static class Helpers
+    public static class HelperMethods
     {
 		public static SecureString ReadPassword()
 		{

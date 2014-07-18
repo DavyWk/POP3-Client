@@ -10,14 +10,14 @@ namespace Core.Mail
 {
 	public class MessageParser
 	{
-		public MailMessage Message { get; private set; }
+		public POPMessage Message { get; private set; }
 		
 		private List<string> lines;
 		
 		public MessageParser(List<string> messageLines)
 		{
 			lines = messageLines;
-			MailMessage m = new MailMessage();
+			POPMessage m = new POPMessage();
 			
 			foreach(var l in lines)
 			{
