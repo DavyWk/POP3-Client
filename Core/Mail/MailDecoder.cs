@@ -1,6 +1,7 @@
 ﻿using System;
-using System.Globalization;
 using System.Text;
+using System.Globalization;
+using System.Collections.Generic;
 
 using Utils;
 
@@ -16,8 +17,6 @@ namespace Core.Mail
 			
 			int index = 0;
 			s = s.Trim();
-			//if(!s.StartsWith("\"=?") && !s.StartsWith("=?"))
-			//	return s;
 			
 			string strCharset = s.SubstringEx('?', '?');
 			if(strCharset == string.Empty)
@@ -36,7 +35,9 @@ namespace Core.Mail
 					followingSpace = s.Length;
 				current = s.Substring(index, followingSpace - index);
 				
-				if(followingSpace < s.Length - 1)
+				if((followingSpace != s.Length)
+				   && (s[followingSpace + 1] ==  '=')
+				   && (s[followingSpace + 2] == '?'))
 					s = s.Remove(followingSpace, 1);
 
 				
@@ -58,12 +59,9 @@ namespace Core.Mail
 					endIndex = current.IndexOf("==",index) + 2;
 					// One padding character.
 					if(endIndex == 1)
-					{
 						endIndex = current.IndexOf('=', index) + 1;
-						
-						if(endIndex == current.Length)
-							endIndex = current.IndexOf('?',index);
-					}
+					if(current[endIndex - 2] == '?')
+						endIndex -= 2;
 					
 					encoded = current.Substring(index, endIndex - index);
 					decoded = GetStringFromEncodedBase64(encoded,
@@ -85,7 +83,7 @@ namespace Core.Mail
 						encoded = current.Substring(index, endIndex - index);
 						byte[] raw = Encoding.UTF8.GetBytes(encoded);
 						decoded = charset.GetString(raw);
-						decoded = RemoveJunk(decoded);
+						decoded = RemoveJunk(decoded, charset);
 					}
 
 				}
@@ -102,9 +100,14 @@ namespace Core.Mail
 			return s;
 		}
 		
-		public static string RemoveJunk(string s)
+		public static string RemoveJunk(string s, Encoding enc = null)
 		{
-			const string hexChars = "ABCDEF0123456789";
+			if(enc == null)
+				enc = Encoding.UTF8;
+			// Sometimes, UTF characters are encoded like:
+			// =C3=EA=90
+			char[] hexChars = { 'A', 'B', 'C', 'D', 'E', 'F',
+				'0','1', '2', '3', '4', '5', '6', '7', '8', '9'};
 			
 			string current = s;
 			int index = 0;
@@ -122,22 +125,48 @@ namespace Core.Mail
 				if((index + 1) > current.Length - 1)
 					continue;
 				
-				string hex = current.Substring(index, 2);
-				// original is used to keep the = sign at the
-				// beginning.
-				string original = current.Substring(index - 1, 3);
+				// Just to know where the original string starts.
+				// -1: Keep the '=' sign.
+				lastIndex = index - 1;
 				
-				if(hex.ToCharArray().Contains(hexChars.ToCharArray()))
+				int next = index;
+				var hex = new List<byte>();
+				
+				string hexString = current.Substring(index, 2);
+				if(!hexString.ToCharArray().Contains(hexChars))
+					break;
+				byte b = (byte)GetCharFromHex(hexString);
+				if(b == 0)
+					break;
+				
+				hex.Add(b);
+				while((next = current.IndexOf('=', next) + 1) > index)
 				{
-					char c = GetCharFromHex(hex);
-					if(c == '\0')
-						continue;
+					if((next - 3) != index)
+						break;
 					
-					string temp = c.ToString();
-					//current = current.Remove(index - 1,1);
-					current = current.Replace(original,temp);
+					index = next;
+					
+					hexString = current.Substring(index, 2);
+					if(!hexString.ToCharArray().Contains(hexChars))
+						break;
+					b = (byte)GetCharFromHex(hexString);
+					if(b == 0)
+						break;
+					hex.Add(b);
 				}
-				index--;
+				// Gets to the end of the encoded string.
+				index += 2;
+				
+				// Original is used to keep the = sign at the
+				// beginning.
+				string original =
+					current.Substring(lastIndex, index - lastIndex);
+				string decoded = enc.GetString(hex.ToArray());
+				current = current.Replace(original, decoded);
+				
+				// Reset index for next iteration.
+				index  = lastIndex + 1;
 				lastIndex = index;
 			}
 
@@ -151,8 +180,8 @@ namespace Core.Mail
 			   && (char.IsLetterOrDigit(hexString[1])
 			       || char.IsWhiteSpace(hexString[1])))
 			{
-				long val = 0;
-				long.TryParse(hexString,
+				byte val = 0;
+				byte.TryParse(hexString,
 				              NumberStyles.AllowHexSpecifier,
 				              CultureInfo.InvariantCulture,
 				              out val);

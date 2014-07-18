@@ -1,3 +1,2 @@
 -Add other commands
 -Add more friendly API to the POP3Client class.
--Handle double unicode chars in RemoveJunk.

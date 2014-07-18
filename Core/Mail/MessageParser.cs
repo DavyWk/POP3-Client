@@ -37,9 +37,11 @@ namespace Core.Mail
 					break; // Not 100% accurate.
 			}
 			
-			// Some dumb SMTP server don't add a Subject field.
+			// Some SMTP sever don't send all the fields.
 			if(m.Subject == null)
 				m.Subject = "(No Subject)";
+			if(m.CharSet == null)
+				m.CharSet = Encoding.UTF8;
 			
 			m.ContainsHTML = CheckHTML();
 			m.Body = GetBody(m.CharSet);
@@ -324,29 +326,30 @@ namespace Core.Mail
 			int htmlEnd = -1;
 			for(int i = 0; i < lines.Count; i++)
 			{
-
+				string current = lines[i];
 				
 				if(i > bodyStart)
 				{
-					if((htmlBegin == -1) && lines[i].StartsWith("<html>") ||
-					   lines[i].StartsWithEx("<!DOCTYPE html>"))
+					if((htmlBegin == -1) && current.StartsWith("<html>") ||
+					   current.StartsWithEx("<!DOCTYPE html>"))
 						htmlBegin = i;
-					if((htmlEnd == -1) && lines[i].StartsWith("</html>"))
+					if((htmlEnd == -1) && current.StartsWith("</html>"))
 						htmlEnd = i;
 					
 					// Sometimes lines end with = sign.
-					if(lines[i].EndsWith("="))
-						lines[i] = lines[i].Remove(lines[i].Length -1 , 1);
-					lines[i] = MailDecoder.RemoveJunk(lines[i]);
+					if(current.EndsWith("="))
+						current = current.Remove(current.Length -1 , 1);
+					current = MailDecoder.RemoveJunk(current, Message.CharSet);
 					
-					lBody.Add(lines[i]);
+					lBody.Add(current);
 					
+					lines[i] = current;
 					// If bodyStart is already set, don't need to check again.
 					continue;
 				}
 				
 				// Not accurate.
-				if(lines[i].StartsWith("X-OriginalArrivalTime:"))
+				if(current.StartsWith("X-OriginalArrivalTime:"))
 				{
 					// Skips blank lines after X-OriginalArrivalTime.
 					
