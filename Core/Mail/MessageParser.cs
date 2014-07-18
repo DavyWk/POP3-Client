@@ -37,9 +37,9 @@ namespace Core.Mail
 					break; // Not 100% accurate.
 			}
 			
-			// No idea why this happens.
+			// Some dumb SMTP server don't add a Subject field.
 			if(m.Subject == null)
-				m.Subject = string.Empty;
+				m.Subject = "(No Subject)";
 			
 			m.ContainsHTML = CheckHTML();
 			m.Body = GetBody(m.CharSet);
@@ -68,7 +68,17 @@ namespace Core.Mail
 			if(s.IndexOf('"') > 0)
 				p.Name = s.SubstringEx('"', '"');
 			else
-				p.Name = s.SubstringEx(' ', ' ');
+			{
+				index = s.IndexOf('<');
+				if(index > 0)
+				{
+					p.Name = s.Substring(0, index - 1);
+					p.Name = p.Name.Trim();
+				}
+				else
+					index = 0;
+			}
+
 			
 			p.EMailAddress = s.SubstringEx('<', '>');
 			if(string.IsNullOrWhiteSpace(p.EMailAddress))
@@ -94,20 +104,31 @@ namespace Core.Mail
 			return p;
 		}
 		
-		private static List<Person> GetReceivers(string s)
+		private List<Person> GetReceivers(string s)
 		{
+			int offset = lines.IndexOf(s);
 			int index = 0;
 			int lastIndex = 0;
 			var receivers = new List<Person>();
-			s = s.Replace("To:",string.Empty).Trim();
+			s = s.Replace("To:", string.Empty).Trim();
+			
+			// Handles multiple receivers.
+			string nextLine = string.Empty;
+			while((nextLine = lines[++offset]).StartsWith("  "))
+			{
+				// Remove double space.
+				nextLine = nextLine.Remove(0, 2);
+				s = string.Format("{0} {1}", s, nextLine);
+			}
+			
 			s = MailDecoder.RemoveEncoding(s);
+			char[] delimitor = new char[] { '"', ' ', '<'};
 			
 			do
 			{
 				lastIndex = index;
-				char[] delimitor = new char[] { '"', ' ', '<'};
 				
-				if((index = s.IndexOfAny(delimitor,index)) > 0)
+				if((index = s.IndexOfAny(delimitor,index)) > -1)
 				{
 					Person receiver = new Person();
 					receiver.Name = s.SubstringEx('"', '"',index);
@@ -116,6 +137,10 @@ namespace Core.Mail
 						receiver.Name = s.SubstringEx(' ', '<',index).Trim();
 					
 					receiver.EMailAddress = s.SubstringEx('<', '>', index);
+					
+					// In case the name is the same as the email address.
+					if(receiver.Name == receiver.EMailAddress)
+						receiver.Name = string.Empty;
 					
 					receivers.Add(receiver);
 				}
@@ -140,22 +165,33 @@ namespace Core.Mail
 			return receivers;
 		}
 		
-		private static string GetSubject(string s)
+		private string GetSubject(string s)
 		{
+			int offset = lines.IndexOf(s);
 			// Skip space.
 			int index = s.IndexOf(':') + 2;
-			
+			string ret = "(No Subject)";
 			if((index != -1) && (index < s.Length))
 			{
 				s = s.Substring(index,s.Length - index);
-				s = MailDecoder.RemoveJunk(s);
+				s = MailDecoder.RemoveEncoding(s);
 				if(s.Trim() == "RE:")
 					s = "RE: (No Subject)";
 				
-				return s.Trim();
+				ret = s;
 			}
-			else
-				return "(No Subject)";
+			string nextLine = lines[offset+1];
+			if(nextLine.StartsWith("\t") || nextLine.StartsWith(" "))
+			{
+				nextLine = nextLine.Replace(" ", string.Empty);
+				nextLine = nextLine.Replace("\t", string.Empty);
+				nextLine = MailDecoder.RemoveEncoding(nextLine);
+				string.Concat(ret, nextLine);
+			}
+			// Some subjects are formatted like that ...
+			ret = ret.Replace('_', ' ');
+			
+			return ret;
 		}
 		
 		private static DateTime GetDate(string s)

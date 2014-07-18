@@ -228,7 +228,7 @@ namespace Utils
 			
 			using(var sw = File.AppendText(filePath))
 			{
-				writer.WriteLine("{0} {1}", time, text);
+				sw.WriteLine("{0} {1}", time, text);
 			}
 		}
 		

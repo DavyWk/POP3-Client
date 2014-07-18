@@ -16,75 +16,90 @@ namespace Core.Mail
 			
 			int index = 0;
 			s = s.Trim();
-			if(!s.StartsWith("\"=?") && !s.StartsWith("=?"))
-				return s;
+			//if(!s.StartsWith("\"=?") && !s.StartsWith("=?"))
+			//	return s;
 			
 			string strCharset = s.SubstringEx('?', '?');
 			if(strCharset == string.Empty)
 				return s;
 			
-			string current = s.SubstringEx('"', '"');
-			// If there is no " "
-			if(current == string.Empty)
+			while((index = s.IndexOf("=?")) > -1)
 			{
-				index = s.IndexOf(' ');
-				// If there are no spaces, get the whole string.
-				if(index == -1)
-					index = s.Length;
-				current = s.Substring(0, index);
-			}
-
-			
-			Encoding charset = Encoding.GetEncoding(strCharset);
-			// Skip ? after strCharset
-			index = current.IndexOf('?', 3) + 1;
-			char code = current[index];
-			// Skip the second '?'
-			index = current.IndexOf('?', index) + 1;
-			string original = current.Substring(0, index);
-			
-			int endIndex = 0;
-			string decoded = string.Empty;
-			string encoded = string.Empty;
-			
-			if(code == 'B') // Base64
-			{
-				// Two padding characters.
-				endIndex = current.IndexOf("==",index) + 2;
-				// One padding character.
-				if(endIndex == 1)
-					endIndex = current.IndexOf('=', index) + 1;
-				if(endIndex == current.Length)
-					endIndex = current.IndexOf('?',index);
+				string current = string.Empty;
+				// index is at the beginning of the encoded string.
 				
-				encoded = current.Substring(index, endIndex - index);
-				decoded = GetStringFromEncodedBase64(encoded,
-				                                     charset);
-			}
-			else
-			{
-				endIndex = current.IndexOf(' ',index);
+				// End of encoded string
+				int followingSpace = s.IndexOf(' ', index);
+				
 				// If there are no spaces, get the whole string.
-				if(endIndex == -1)
-					endIndex = current.IndexOf('?',index);
-			}
+				if(followingSpace == -1)
+					followingSpace = s.Length;
+				current = s.Substring(index, followingSpace - index);
+				
+				if(followingSpace < s.Length - 1)
+					s = s.Remove(followingSpace, 1);
+
+				
+				Encoding charset = Encoding.GetEncoding(strCharset);
+				// Skip ? after strCharset
+				index = current.IndexOf('?', 3) + 1;
+				char code = current[index];
+				// Skip the second '?'
+				index = current.IndexOf('?', index) + 1;
+				string original = current.Substring(0, index);
+				
+				int endIndex = 0;
+				string decoded = string.Empty;
+				string encoded = string.Empty;
+				
+				if(code == 'B') // Base64
+				{
+					// Two padding characters.
+					endIndex = current.IndexOf("==",index) + 2;
+					// One padding character.
+					if(endIndex == 1)
+					{
+						endIndex = current.IndexOf('=', index) + 1;
+						
+						if(endIndex == current.Length)
+							endIndex = current.IndexOf('?',index);
+					}
+					
+					encoded = current.Substring(index, endIndex - index);
+					decoded = GetStringFromEncodedBase64(encoded,
+					                                     charset);
+				}
+				else
+				{
+					endIndex = current.IndexOf(' ',index);
+					// If there are no spaces, get the whole string.
+					if(endIndex == -1)
+						endIndex = current.IndexOf('?',index);
+				}
 
 
-			if(decoded == string.Empty)
-			{
-				encoded = current.Substring(index, endIndex - index);
-				byte[] raw = Encoding.UTF8.GetBytes(encoded);
-				decoded = charset.GetString(raw);
-				decoded = RemoveJunk(decoded);
+				if(decoded == string.Empty)
+				{
+					if((index != -1) && (endIndex != -1))
+					{
+						encoded = current.Substring(index, endIndex - index);
+						byte[] raw = Encoding.UTF8.GetBytes(encoded);
+						decoded = charset.GetString(raw);
+						decoded = RemoveJunk(decoded);
+					}
+
+				}
+				
+				string ret = current.Replace(original, string.Empty);
+				if(!string.IsNullOrWhiteSpace(encoded))
+					ret = ret.Replace(encoded, decoded);
+				
+				ret = ret.Replace("?=", string.Empty);
+				s = s.Replace(current, ret);
+				
 			}
 			
-			string ret = current.Replace(original, string.Empty);
-			if(!string.IsNullOrWhiteSpace(encoded))
-				ret = ret.Replace(encoded, decoded);
-			
-			ret = ret.Replace("?=", string.Empty);
-			
-			return s.Replace(current, ret);
+			return s;
 		}
 		
 		public static string RemoveJunk(string s)
@@ -104,7 +119,7 @@ namespace Core.Mail
 					continue;
 				}
 				index++;
-				if((index + 2) > current.Length - 1)
+				if((index + 1) > current.Length - 1)
 					continue;
 				
 				string hex = current.Substring(index, 2);
