@@ -53,13 +53,14 @@ namespace Core.Mail
 				string decoded = string.Empty;
 				string encoded = string.Empty;
 				
-				if(code == 'B') // Base64
+				if(code == 'B') // The string is encoded using Base64.
 				{
 					// Two padding characters.
 					endIndex = current.IndexOf("==",index) + 2;
 					// One padding character.
 					if(endIndex == 1)
 						endIndex = current.IndexOf('=', index) + 1;
+					// No padding character.
 					if(current[endIndex - 2] == '?')
 						endIndex -= 2;
 					
@@ -104,8 +105,13 @@ namespace Core.Mail
 		{
 			if(enc == null)
 				enc = Encoding.UTF8;
-			// Sometimes, UTF characters are encoded like:
-			// =C3=EA=90
+			/* 
+               Sometimes, UTF characters are encoded like:
+			   =C3=EA=90
+			   Get all of the hexadecimal chars between the = signs, and then
+			   use Encoding.GetString() to get the UTF character.
+			*/
+			
 			// Should be const.
 			char[] HexChars = { 'A', 'B', 'C', 'D', 'E', 'F',
 				'0','1', '2', '3', '4', '5', '6', '7', '8', '9'};
