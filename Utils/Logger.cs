@@ -5,15 +5,15 @@ using Core.Protocol;
 
 namespace Utils
 {
-	public enum ELogTypes
+	public enum LogType
 	{
 		Info,
-		Network,
-		Debug,
 		Error,
+		Debug,	
+		Inbox,
+		Network,
 		Success,
 		Unknown,
-		Inbox,
 		Exception,
 	}
 
@@ -21,13 +21,13 @@ namespace Utils
 	public static class Logger
 	{
 		
-		private static ELogTypes status;
+		private static LogType status;
 		private static string filePath = string.Empty;
 
 		/// <summary>
 		/// Retrieves the type of the last logged message.
 		/// </summary>
-		public static ELogTypes Status
+		public static LogType Status
 		{
 			get { return status; }
 			private set { status = value;}
@@ -36,29 +36,25 @@ namespace Utils
 		public static void Command(bool file, string format,
 		                           params object[] args)
 		{
-			string s = string.Format(format,args).Trim();
+			string s = string.Format(format, args).Trim();
 			
 			if(file)
 			{
 				if(Protocol.CheckHeader(s))
-					LogFile(ELogTypes.Success,s.Replace(Constants.OK,
-					                                    string.Empty));
+					LogFile(LogType.Success,Protocol.RemoveHeader(s));
 				else if(s.StartsWith(Constants.ERROR))
-					LogFile(ELogTypes.Error,s.Replace(Constants.ERROR,
-					                                  string.Empty));
+					LogFile(LogType.Error, Protocol.RemoveHeader(s));
 				else
-					LogFile(ELogTypes.Unknown,s);
+					LogFile(LogType.Unknown,s);
 			}
 			else
 			{
 				if(Protocol.CheckHeader(s))
-					LogConsole(ELogTypes.Success,s.Replace(Constants.OK,
-					                                       string.Empty));
+					LogConsole(LogType.Success, Protocol.RemoveHeader(s));
 				else if(s.StartsWith(Constants.ERROR))
-					LogConsole(ELogTypes.Error,s.Replace(Constants.ERROR,
-					                                     string.Empty));
+					LogConsole(LogType.Error, Protocol.RemoveHeader(s));
 				else
-					LogConsole(ELogTypes.Unknown,s);
+					LogConsole(LogType.Unknown,s);
 			}
 		}
 		public static void Command(string format, params object[] args)
@@ -67,67 +63,67 @@ namespace Utils
 		}
 
 		public static void Exception(Exception ex)
-		{
+		{ // Exceptions will always be logged on both console and file.
 			Error(ex.Message);
-			Error(true,ex.ToString());
-			
+			Error(true, ex.ToString());
 		}
+		
 		public static void Info(bool file, string format, params object[] args)
 		{
 			if(file)
-				LogFile(ELogTypes.Info,format,args);
+				LogFile(LogType.Info, format, args);
 			else
-				LogConsole(ELogTypes.Info,format,args);
+				LogConsole(LogType.Info, format, args);
 		}
 		public static void Info(string format, params object[] args)
 		{
-			Info(false,format,args);
+			Info(false, format, args);
 		}
 
 		public static void Network(bool file, string format,
 		                           params object[] args)
 		{
 			if(file)
-				LogFile(ELogTypes.Network,format,args);
+				LogFile(LogType.Network, format, args);
 			else
-				LogConsole(ELogTypes.Network,format,args);
+				LogConsole(LogType.Network, format, args);
 		}
 		public static void Network(string format, params object[] args)
 		{
-			Network(false,format,args);
+			Network(false, format, args);
 		}
 
 		public static void Debug(bool file, string format, params object[] args)
 		{
 			if(file)
-				LogFile(ELogTypes.Debug,format,args);
+				LogFile(LogType.Debug, format, args);
 			else
-				LogConsole(ELogTypes.Debug,format,args);
+				LogConsole(LogType.Debug, format, args);
 		}
 		public static void Debug(string format, params object[] args)
 		{
-			Debug(false,format,args);
+			Debug(false, format, args);
 		}
 
 		public static void Error(bool file,string format, params object[] args)
 		{
 			if(file)
-				LogFile(ELogTypes.Error,format,args);
+				LogFile(LogType.Error, format, args);
 			else
-				LogConsole(ELogTypes.Error,format,args);
+				LogConsole(LogType.Error, format, args);
 		}
 		public static void Error(string format, params object[] args)
 		{
-			Error(false,format,args);
+			Error(false, format, args);
 		}
 
 		public static void Success(bool file, string format,
 		                           params object[] args)
 		{
 			if(file)
-				LogFile(ELogTypes.Success,format,args);
+				LogFile(LogType.Success, format, args);
 			else
-				LogConsole(ELogTypes.Success,format,args);
+				LogConsole(LogType.Success, format, args);
 		}
 		public static void Success(string format, params object[] args)
 		{
@@ -137,9 +133,9 @@ namespace Utils
 		public static void Inbox(bool file,string format, params object[] args)
 		{
 			if(file)
-				LogFile(ELogTypes.Inbox,format,args);
+				LogFile(LogType.Inbox, format, args);
 			else
-				LogConsole(ELogTypes.Inbox,format,args);
+				LogConsole(LogType.Inbox, format, args);
 		}
 		public static void Inbox(string format, params object[] args)
 		{
@@ -150,45 +146,41 @@ namespace Utils
 		                           params object[] args)
 		{
 			if(file)
-				LogFile(ELogTypes.Unknown,format,args);
+				LogFile(LogType.Unknown, format, args);
 			else
-				LogConsole(ELogTypes.Unknown,format,args);
+				LogConsole(LogType.Unknown, format, args);
 		}
 		public static void Unknown(string format, params object[] args)
 		{
-			Unknown(false,format,args);
+			Unknown(false, format, args);
 		}
 		
 		
-		public static void LogConsole(ELogTypes logType, string format,
-		                              params object[] args)
+		private static ConsoleColor GetColor(LogType type)
 		{
 			ConsoleColor c = Console.ForegroundColor;
-			string formatted = string.Format(format,args);
-
-			status = logType;
 			
-			switch (logType)
+			switch (type)
 			{
-				case ELogTypes.Info:
+				case LogType.Info:
 					c = ConsoleColor.White;
 					break;
-				case ELogTypes.Network:
+				case LogType.Network:
 					c = ConsoleColor.Cyan;
 					break;
-				case ELogTypes.Debug:
+				case LogType.Debug:
 					c = ConsoleColor.DarkGreen;
 					break;
-				case ELogTypes.Error:
+				case LogType.Error:
 					c = ConsoleColor.Red;
 					break;
-				case ELogTypes.Success:
+				case LogType.Success:
 					c = ConsoleColor.Green;
 					break;
-				case ELogTypes.Unknown:
+				case LogType.Unknown:
 					c = ConsoleColor.Yellow;
 					break;
-				case ELogTypes.Inbox:
+				case LogType.Inbox:
 					c = ConsoleColor.Magenta;
 					break;
 
@@ -196,8 +188,25 @@ namespace Utils
 					break;
 			}
 			
-			Console.ForegroundColor = c;
-			Console.Write("<{0}> ", logType.ToString());
+			return c;
+		}
+		
+		public static void LogConsole(LogType type, string format,
+		                              params object[] args)
+		{
+			ConsoleColor c = Console.ForegroundColor;
+			string formatted;
+			// Helps avoiding some FormatExceptions.
+			if(args.Length == 0)
+				formatted = format;
+			else
+				formatted = string.Format(format, args);
+
+			status = type;
+			
+			Console.ForegroundColor = GetColor(type);
+			string colored = string.Format("<{0}>", type.ToString());
+			Console.Write("{0, -9} ", colored);
 			Console.ResetColor();
 			
 			Console.WriteLine(formatted);
@@ -205,14 +214,15 @@ namespace Utils
 		}
 		
 
-		public static void LogFile(ELogTypes logType,string format,
+		public static void LogFile(LogType type,string format,
 		                           params object[] args)
 		{
-			string formatted = string.Format(format,args);
-			string text = string.Format("<{0}> {1}",
-			                            logType.ToString(),formatted);
+			string formatted = string.Format(format, args);
+			string header = string.Format("<{0}>", type.ToString());
+			string text = string.Format("{0, -9} {1}",
+			                            header, formatted);
 			
-			status = logType;
+			status = type;
 			
 			LogFile(text);
 		}

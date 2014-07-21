@@ -16,7 +16,7 @@ namespace POP3_Client
 
 		static int Main(string[] args)
 		{
-			const string host = "pop-mail.outlook.com"; // pop-mail.outlook.com
+			const string host = "pop-mail.outlook.com";
 			const int port = 995;
 			
 			string logFile = Path.Combine(
@@ -24,7 +24,6 @@ namespace POP3_Client
 				"errors.log");
 			
 			Logger.Bind(logFile);
-			
 			Console.Title = "POP3 Client";
 			
 			POP3Client c = new POP3Client(host, port, true);
@@ -39,7 +38,7 @@ namespace POP3_Client
 			password = HelperMethods.ReadPassword();
 			
 			Logger.Command(c.Login(address, password.ToAsciiString()));
-			if(Logger.Status == ELogTypes.Error)
+			if(Logger.Status == LogType.Error)
 			{
 				Console.ReadLine();
 				Environment.Exit(1);
@@ -55,12 +54,11 @@ namespace POP3_Client
 			}
 			Logger.Inbox("{0} messages, {1} bytes total.",nb,size);
 			
-
-
-			int i = 1;
+			
 			foreach (var m in c.GetMessages())
 			{
-				Logger.Debug(true, "{0}: {1}", i++, m.Subject);
+				Logger.Inbox("{0}: \"{1}\"", m.Sender.EMailAddress,
+				             m.Subject);
 			}
 
 			

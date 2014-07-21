@@ -18,11 +18,11 @@
 			// 0 because it should be the first character in the string.
 			if(s.StartsWith(Constants.OK))
 			{
-				s = s.Substring(index,s.Length - index);
+				s = s.Substring(index, s.Length - index);
 			}
 			else if(s.StartsWith(Constants.ERROR))
 			{
-				s = s.Substring(index,s.Length - index);
+				s = s.Substring(index, s.Length - index);
 			}
 			
 			return s;
