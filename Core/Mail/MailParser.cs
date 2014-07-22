@@ -8,33 +8,37 @@ using Core.Mail;
 
 namespace Core.Mail
 {
-	public class MessageParser
+	public class MailParser
 	{
 		public POPMessage Message { get; private set; }
 		
 		private List<string> lines;
 		
-		public MessageParser(List<string> messageLines)
+		public MailParser(List<string> messageLines)
 		{
 			lines = messageLines;
 			POPMessage m = new POPMessage();
 			
 			foreach(var l in lines)
 			{
-				if(l.StartsWith("Message-ID:"))
-					m.ID = GetID(l);
-				else if(l.StartsWith("From:"))
-					m.Sender = GetSender(l);
-				else if(l.StartsWith("To:"))
-					m.Receivers = GetReceivers(l);
-				else if(l.StartsWith("Subject:"))
-					m.Subject = GetSubject(l);
-				else if(l.StartsWith("Date:"))
-					m.ArrivalTime = GetDate(l);
-				else if(l.StartsWith("Content-Type:"))
-					m.CharSet = GetEncoding(l);
-				else if(l.StartsWith("X-OriginalArrivalTime:"))
-					break; // Not 100% accurate.
+				// Just in case.
+				var s = l.Trim();
+				// Using string.ToLower() to check because sometimes
+				// the fields are in lowercase.
+				if(s.ToLower().StartsWith("message-id:"))
+					m.ID = GetID(s);
+				else if(s.ToLower().StartsWith("from:"))
+					m.Sender = GetSender(s);
+				else if(s.ToLower().StartsWith("to:"))
+					m.Receivers = GetReceivers(s);
+				else if(s.ToLower().StartsWith("subject:"))
+					m.Subject = GetSubject(s);
+				else if(s.ToLower().StartsWith("date:"))
+					m.ArrivalTime = GetDate(s);
+				else if(s.ToLower().StartsWith("content-type:"))
+					m.CharSet = GetEncoding(s);
+				else if(string.IsNullOrWhiteSpace(s))
+					break;
 			}
 			
 			// Some SMTP sever don't send all the fields.
@@ -51,7 +55,7 @@ namespace Core.Mail
 		
 		private static string GetID(string s)
 		{
-			return s.SubstringEx('<','>');
+			return s.SubstringEx('<', '>');
 		}
 		
 		private Person GetSender(string s)
@@ -63,7 +67,8 @@ namespace Core.Mail
 			string nextLine = lines[offset + 1];
 			
 			int index = s.IndexOf(':') + 2;
-			s = s.Substring(index, s.Length - index);
+			if(index < s.Length - 1)
+				s = s.Substring(index, s.Length - index);
 			index = 0;
 			s = MailDecoder.RemoveEncoding(s);
 			
@@ -112,10 +117,10 @@ namespace Core.Mail
 			int index = 0;
 			int lastIndex = 0;
 			var receivers = new List<Person>();
-			s = s.Replace("To:", string.Empty).Trim();
+			s = s.Replace("To:", string.Empty);
 			
 			// Handles multiple receivers.
-			string nextLine = string.Empty;
+			var nextLine = string.Empty;
 			while((nextLine = lines[++offset]).StartsWith("  "))
 			{
 				// Remove double space.
@@ -124,21 +129,31 @@ namespace Core.Mail
 			}
 			
 			s = MailDecoder.RemoveEncoding(s);
-			char[] delimitor = new char[] { '"', ' ', '<'};
+			var delimitor = new char[] { '"', ' ', '<'};
 			
 			do
 			{
 				lastIndex = index;
-				
-				if((index = s.IndexOfAny(delimitor,index)) > -1)
+
+				if((index = s.IndexOfAny(delimitor, index)) > -1)
 				{
 					Person receiver = new Person();
-					receiver.Name = s.SubstringEx('"', '"',index);
+					receiver.Name = s.SubstringEx('"', '"', index);
 					
 					if(receiver.Name == string.Empty)
-						receiver.Name = s.SubstringEx(' ', '<',index).Trim();
+						receiver.Name = s.SubstringEx(' ', '<', index).Trim();
 					
 					receiver.EMailAddress = s.SubstringEx('<', '>', index);
+					if(receiver.EMailAddress == string.Empty)
+					{
+						int nextColon = s.IndexOf(',', index);
+						if(nextColon == -1)
+							nextColon = s.Length;
+						receiver.EMailAddress = s.Substring(index, 
+						                                    nextColon - index)
+							.Trim();
+					}
+
 					
 					// In case the name is the same as the email address.
 					if(receiver.Name == receiver.EMailAddress)
@@ -148,13 +163,13 @@ namespace Core.Mail
 				}
 				else
 				{
-					index = s.IndexOfAny(new char[] { ' ', ','},lastIndex);
+					index = s.IndexOfAny(new char[] { ' ', ','}, lastIndex);
 					
 					
 					if((index == -1) || (lastIndex == index))
 					{
-						index = s.Length;
-						receivers.Add(new Person(string.Empty,s));
+						//index = s.Length;
+						receivers.Add(new Person(string.Empty, s));
 						break;
 					}
 					
@@ -163,6 +178,13 @@ namespace Core.Mail
 				}
 			}
 			while ((index = s.IndexOf(',', index)) > 0);
+			
+			for(int i = 0; i < receivers.Count; i++)
+			{
+				var p = receivers[i];
+				var address = p.EMailAddress.ToLower();
+				p.EMailAddress = address;
+			}
 			
 			return receivers;
 		}
@@ -319,7 +341,7 @@ namespace Core.Mail
 				charset = Encoding.UTF8;
 			
 			var lBody = new List<string>();
-			string body = string.Empty;
+			var body = string.Empty;
 			int bodyStart = Int32.MaxValue;
 			
 			int htmlBegin = -1;
@@ -330,15 +352,15 @@ namespace Core.Mail
 				
 				if(i > bodyStart)
 				{
-					if((htmlBegin == -1) && current.StartsWith("<html>") ||
-					   current.StartsWithEx("<!DOCTYPE html>"))
+					if((htmlBegin == -1) && (current.StartsWith("<html>") ||
+					                         current.StartsWithEx("<!DOCTYPE html")))
 						htmlBegin = i;
 					if((htmlEnd == -1) && current.StartsWith("</html>"))
 						htmlEnd = i;
 					
 					// Sometimes lines end with = sign.
 					if(current.EndsWith("="))
-						current = current.Remove(current.Length -1 , 1);
+						current = current.Remove(current.Length - 1 , 1);
 					current = MailDecoder.RemoveJunk(current, Message.CharSet);
 					
 					lBody.Add(current);
@@ -364,8 +386,36 @@ namespace Core.Mail
 			if((htmlBegin != -1) && (htmlEnd != -1) && (htmlBegin < htmlEnd))
 				lBody = lines.GetRange(htmlBegin, htmlEnd - htmlBegin);
 			
+			if(lBody.Count == 0)
+			{
+				int emptyLine = 0;
+				foreach(var l in lines)
+				{
+					int currentOffset = lines.IndexOf(l);
+					if(emptyLine == 0)
+					{
+						if(string.IsNullOrWhiteSpace(l))
+						{
+							emptyLine = currentOffset + 1;
+							break;
+						}
+					}
+					
+					if(currentOffset > emptyLine)
+					{
+						string current = lines[currentOffset];
+						// Sometimes lines end with = sign.
+						if(current.EndsWith("="))
+							current = current.Remove(current.Length - 1 , 1);
+						current = MailDecoder.RemoveJunk(current,
+						                                 Message.CharSet);
+					}
+				}
+				lBody = lines.GetRange(emptyLine, lines.Count - emptyLine);
+			}
+			
 
-			body = string.Join("",lBody.ToArray());
+			body = string.Join("", lBody.ToArray());
 			
 			byte[] raw = Encoding.UTF8.GetBytes(body);
 			body = charset.GetString(raw);

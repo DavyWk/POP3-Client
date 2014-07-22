@@ -60,15 +60,15 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Core\Mail\MailDecoder.cs" />
-    <Compile Include="Core\Mail\MessageParser.cs" />
-    <Compile Include="Core\Protocol\CommandParsers\ListParser.cs" />
+    <Compile Include="Core\Mail\MailParser.cs" />
+    <Compile Include="Core\POP\CommandParsers\ListParser.cs" />
     <Compile Include="Core\Mail\MailMessage.cs" />
     <Compile Include="Core\Mail\Person.cs" />
     <Compile Include="Core\Network\POP3Client.cs" />
-    <Compile Include="Core\Protocol\Commands.cs" />
-    <Compile Include="Core\Protocol\Constants.cs" />
-    <Compile Include="Core\Protocol\EStates.cs" />
-    <Compile Include="Core\Protocol\Protocol.cs" />
+    <Compile Include="Core\POP\Commands.cs" />
+    <Compile Include="Core\POP\Constants.cs" />
+    <Compile Include="Core\POP\EStates.cs" />
+    <Compile Include="Core\POP\Protocol.cs" />
     <Compile Include="Core\Helpers\Helpers.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -78,7 +78,7 @@
   <ItemGroup>
     <Folder Include="Core\Mail" />
     <Folder Include="Core\Network" />
-    <Folder Include="Core\Protocol" />
+    <Folder Include="Core\POP" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

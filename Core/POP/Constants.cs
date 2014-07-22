@@ -1,4 +1,4 @@
-﻿namespace Core.Protocol
+﻿namespace Core.POP
 {
 	public static class Constants
 	{

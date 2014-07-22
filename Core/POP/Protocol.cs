@@ -1,4 +1,4 @@
-﻿namespace Core.Protocol
+﻿namespace Core.POP
 {
 	public static class Protocol
 	{
@@ -12,10 +12,12 @@
 		
 		public static string RemoveHeader(string s)
 		{
-			int index = s.IndexOf(" ") + 1;
+			// Just in case.
 			s = s.Trim();
+			// Index of the beginning of the message.
+			int index = s.IndexOf(" ") + 1;
+
 			
-			// 0 because it should be the first character in the string.
 			if(s.StartsWith(Constants.OK))
 			{
 				s = s.Substring(index, s.Length - index);

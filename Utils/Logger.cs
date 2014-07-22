@@ -1,7 +1,7 @@
 ﻿using System;
 using System.IO;
 
-using Core.Protocol;
+using Core.POP;
 
 namespace Utils
 {
@@ -217,9 +217,9 @@ namespace Utils
 		public static void LogFile(LogType type,string format,
 		                           params object[] args)
 		{
-			string formatted = string.Format(format, args);
-			string header = string.Format("<{0}>", type.ToString());
-			string text = string.Format("{0, -9} {1}",
+			var formatted = string.Format(format, args);
+			var header = string.Format("<{0}>", type.ToString());
+			var text = string.Format("{0, -9} {1}",
 			                            header, formatted);
 			
 			status = type;
@@ -233,8 +233,8 @@ namespace Utils
 			if(filePath == string.Empty)
 				return;
 			
-			DateTime dt = DateTime.Now;
-			string time = dt.ToString("[MM-dd-yyyy@hh:mm]");
+			var dt = DateTime.Now;
+			var time = dt.ToString("[MM-dd-yyyy@hh:mm]");
 			
 			using(var sw = File.AppendText(filePath))
 			{

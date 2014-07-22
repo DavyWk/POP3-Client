@@ -16,7 +16,7 @@ namespace Core.Mail
 			// "=?ENCODING?X?encoded?="
 			
 			int index = 0;
-			s = s.Trim();
+//			/s = s.Trim();
 			
 			string strCharset = s.SubstringEx('?', '?');
 			if(strCharset == string.Empty)
@@ -24,7 +24,7 @@ namespace Core.Mail
 			
 			while((index = s.IndexOf("=?")) > -1)
 			{
-				string current = string.Empty;
+				var current = string.Empty;
 				// index is at the beginning of the encoded string.
 				
 				// End of encoded string
@@ -50,8 +50,8 @@ namespace Core.Mail
 				string original = current.Substring(0, index);
 				
 				int endIndex = 0;
-				string decoded = string.Empty;
-				string encoded = string.Empty;
+				var decoded = string.Empty;
+				var encoded = string.Empty;
 				
 				if(code == 'B') // The string is encoded using Base64.
 				{
@@ -195,7 +195,7 @@ namespace Core.Mail
 				if(val == 0)
 					return '\0';
 				
-				char c = (char)val;
+				var c = (char)val;
 				return c;
 			}
 			

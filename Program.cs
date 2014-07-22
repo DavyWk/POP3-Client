@@ -6,7 +6,7 @@ using Utils;
 using Core.Mail;
 using Core.Helpers;
 using Core.Network;
-using Core.Protocol;
+using Core.POP;
 
 namespace POP3_Client
 {
@@ -26,7 +26,7 @@ namespace POP3_Client
 			Logger.Bind(logFile);
 			Console.Title = "POP3 Client";
 			
-			POP3Client c = new POP3Client(host, port, true);
+			var c = new POP3Client(host, port, true);
 			
 			Logger.Network(Protocol.RemoveHeader(c.Connect()));
 			
@@ -47,21 +47,22 @@ namespace POP3_Client
 			int size = 0;
 			int nb = 0;
 			
-			foreach (KeyValuePair<int,int> kv in c.ListMessages())
+			foreach (KeyValuePair<int, int> kv in c.ListMessages())
 			{
 				size += kv.Value;
 				nb++;
 			}
-			Logger.Inbox("{0} messages, {1} bytes total.",nb,size);
+			Logger.Inbox("{0} messages, {1} bytes total.", nb, size);
 			
-			
-			foreach (var m in c.GetMessages())
-			{
-				Logger.Inbox("{0}: \"{1}\"", m.Sender.EMailAddress,
-				             m.Subject);
-			}
 
-			
+			int i = 1;
+			foreach (POPMessage m in c.GetMessages())
+			{
+				// TODO: Fix NullReferenceException here
+				foreach(Person p in m.Receivers)
+					Logger.Inbox(true,"{0} : {1}", i, p.EMailAddress);
+				i++;
+			}
 			Logger.Command(c.Quit());
 
 			

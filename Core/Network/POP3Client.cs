@@ -9,8 +9,8 @@ using System.Collections.Generic;
 using Utils;
 using Core.Mail;
 using Core.Helpers;
-using Core.Protocol;
-using Core.Protocol.CommandParser;
+using Core.POP;
+using Core.POP.CommandParser;
 
 namespace Core.Network
 {
@@ -39,7 +39,7 @@ namespace Core.Network
 			SSL = ssl;
 			
 			IPAddress[] ips = Dns.GetHostAddresses(host);
-			foreach(IPAddress i in ips)
+			foreach(var i in ips)
 			{
 				// Check for the first IPv4 address.
 				if(i.AddressFamily == AddressFamily.InterNetwork)
@@ -75,6 +75,9 @@ namespace Core.Network
 			disposed = true;
 		}
 		
+		/// <summary>
+		/// Cleans up ressources on forced exit.
+		/// </summary>
 		private void InternalClose()
 		{
 			if(stream != null)
@@ -89,6 +92,7 @@ namespace Core.Network
 		/// </summary>
 		private void InternalExit()
 		{
+			InternalClose();
 			Logger.Error("Exiting ...");
 			Console.ReadLine();
 			Environment.Exit(1);
@@ -110,7 +114,7 @@ namespace Core.Network
 			
 			try
 			{
-				byte[] buffer = Encoding.UTF8.GetBytes(string.Concat(
+				var buffer = Encoding.UTF8.GetBytes(string.Concat(
 					command,
 					Constants.Terminator));
 				
@@ -132,7 +136,7 @@ namespace Core.Network
 		
 		public List<string> ReceiveMultiLine()
 		{
-			List<string> received = new List<string>();
+			var received = new List<string>();
 			
 			while(true)
 			{
@@ -151,7 +155,7 @@ namespace Core.Network
 		
 		public string Receive()
 		{
-			List<byte> received = new List<byte>();
+			var received = new List<byte>();
 			string response;
 			
 			try
@@ -186,16 +190,18 @@ namespace Core.Network
 		/// <summary>
 		/// Connects to the POP3 server.
 		/// </summary>
-		/// <returns>True if the connection was sucessful, false otherwise.</returns>
+		/// <returns>True if the connection was sucessful,
+		/// false otherwise.</returns>
 		public bool Connect(bool dummy = false)
 		{
-			return Protocol.Protocol.CheckHeader(Connect());
+			return Protocol.CheckHeader(Connect());
 		}
 		
 		/// <summary>
 		/// Connects to the POP3 server.
 		/// </summary>
-		/// <returns>The welcome message or an empty string if connection failed.</returns>
+		/// <returns>The welcome message or
+		/// an empty string if the connection failed.</returns>
 		public string Connect()
 		{
 			if(this.Connected)
@@ -207,17 +213,26 @@ namespace Core.Network
 				client = new TcpClient();
 			}
 			
-			client.Connect(new IPEndPoint(IP,Port));
+			try
+			{
+				client.Connect(new IPEndPoint(IP, Port));
+			}
+			catch(SocketException ex)
+			{
+				Logger.Exception(ex);
+				InternalExit();
+			}
 			
 			if(client.Connected)
 			{
 				stream = client.GetStream();
-				Utils.Logger.Network("Connected to {0}:{1}",Host,Port);
+				Utils.Logger.Network("Connected to {0}({1}) on port {2}",
+				                     IP, Host, Port);
 				this.Connected = true;
 				
 				if(SSL)
 				{
-					SslStream secureStream = new SslStream(stream);
+					var secureStream = new SslStream(stream);
 					secureStream.AuthenticateAsClient(Host);
 					
 					stream = secureStream;
@@ -243,7 +258,7 @@ namespace Core.Network
 		{
 			if(State != EStates.Authorization)
 				throw new InvalidOperationException(
-					string.Format(invalidOperation,State.ToString()));
+					string.Format(invalidOperation, State.ToString()));
 			
 			if(string.IsNullOrEmpty(emailAddress))
 				emailAddress.ThrowIfNullOrEmpty("emailAddress");
@@ -255,16 +270,16 @@ namespace Core.Network
 			// "Send pass".
 			Receive();
 			
-			SendCommand("{0} {1}",Commands.PASS, password);
+			SendCommand("{0} {1}", Commands.PASS, password);
 			
 			string response = Receive();
 
-			if(Protocol.Protocol.CheckHeader(response))
+			if(Protocol.CheckHeader(response))
 			{
 				SendCommand(Commands.NoOperation);
 				
 				string check = Receive();
-				if(!Protocol.Protocol.CheckHeader(check))
+				if(!Protocol.CheckHeader(check))
 				{
 					return check; // Login limit ?
 				}
@@ -300,7 +315,7 @@ namespace Core.Network
 		{
 			if(State != EStates.Transaction)
 				throw new InvalidOperationException(
-					string.Format(invalidOperation,State.ToString()));
+					string.Format(invalidOperation, State.ToString()));
 			
 			SendCommand(Commands.LIST);
 			Receive();
@@ -326,14 +341,11 @@ namespace Core.Network
 		{
 			if(State != EStates.Transaction)
 				throw new InvalidOperationException(
-					string.Format(invalidOperation,State.ToString()));
+					string.Format(invalidOperation, State.ToString()));
 			
-			SendCommand("{0} {1}",Commands.RETRIEVE,messageID);
-			POPMessage m = new POPMessage();
+			SendCommand("{0} {1}", Commands.RETRIEVE, messageID);
 			
-			m = new MessageParser(ReceiveMultiLine()).Message;
-			
-			return m;
+			return new MailParser(ReceiveMultiLine()).Message;
 		}
 	}
 }
