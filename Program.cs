@@ -54,15 +54,18 @@ namespace POP3_Client
 			}
 			Logger.Inbox("{0} messages, {1} bytes total.", nb, size);
 			
-			//c.GetMessage(228);
-			int i = 1;
-			foreach (POPMessage m in c.GetMessages())
-			{
-				// TODO: Fix NullReferenceException here
-				foreach(Person p in m.Receivers)
-					Logger.Inbox(true,"{0} : {1}", i, p.EMailAddress);
-				i++;
-			}
+
+			
+			foreach(Person p in c.GetMessage(228).Receivers)
+				Logger.Inbox(true, "{0} : {1}", 228, p.EMailAddress);
+//			int i = 1;
+//			foreach (POPMessage m in c.GetMessages())
+//			{
+//				// TODO: Fix NullReferenceException here
+//				foreach(Person p in m.Receivers)
+//					Logger.Inbox(true,"{0} : {1}", i, p.EMailAddress);
+//				i++;
+//			}
 			Logger.Command(c.Quit());
 
 			

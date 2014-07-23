@@ -120,12 +120,15 @@ namespace Core.Mail
 			s = s.Replace("To:", string.Empty);
 			
 			// Handles multiple receivers.
-			var nextLine = string.Empty;
-			while((nextLine = lines[++offset].Replace("\t", "  ")).StartsWith("  "))
+			var nextLine = lines[++offset];
+			int extraChars = MailDecoder.StartsWith(nextLine);
+			while(extraChars > 0)
 			{
-				// Remove double space.
-				nextLine = nextLine.Remove(0, 2);
+				nextLine = nextLine.Remove(0, extraChars);
 				s = string.Format("{0} {1}", s, nextLine);
+				
+				nextLine = lines[++offset];
+				extraChars = MailDecoder.StartsWith(nextLine);
 			}
 			
 			s = MailDecoder.RemoveEncoding(s);
@@ -168,10 +171,9 @@ namespace Core.Mail
 					
 					// Just to handle the case where the address is between
 					// parenthesis.
-					if(receiver.EMailAddress.Replace("\"", string.Empty)
-					   == receiver.Name)
+					if(receiver.Name.SubstringEx('"', '"')
+					   == receiver.EMailAddress)
 					{
-						receiver.EMailAddress = receiver.Name;
 						receiver.Name = string.Empty;
 					}
 					
@@ -195,12 +197,14 @@ namespace Core.Mail
 			}
 			while ((index = s.IndexOf(',', index)) > 0);
 			
-//			for(int i = 0; i < receivers.Count; i++)
-//			{
-//				var p = receivers[i];
-//				var address = p.EMailAddress.ToLower();
-//				p.EMailAddress = address;
-//			}
+			// Sometimes, addresses are in uppercase.
+			for(int i = 0; i < receivers.Count; i++)
+			{
+				var p = receivers[i];
+				var address = p.EMailAddress.ToLower();
+				p.EMailAddress = address;
+				receivers[i] = p;
+			}
 			
 			return receivers;
 		}

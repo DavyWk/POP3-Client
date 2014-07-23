@@ -110,7 +110,7 @@ namespace Core.Mail
 			   =C3=EA=90
 			   Get all of the hexadecimal chars between the = signs, and then
 			   use Encoding.GetString() to get the UTF character.
-			*/
+			 */
 			
 			// Should be const.
 			char[] HexChars = { 'A', 'B', 'C', 'D', 'E', 'F',
@@ -211,6 +211,23 @@ namespace Core.Mail
 			byte[] raw = Convert.FromBase64String(s);
 			
 			return enc.GetString(raw);
+		}
+		
+		/// <summary>
+		/// Checks for extra characters at the beginning of a string. <br/>
+		/// TAB, SPACE, DOUBLESPACE
+		/// </summary>
+		/// <param name="s">String that might start with
+		/// extra characters.</param>
+		/// <returns>The number of extra characters.</returns>
+		public static int StartsWith(string s)
+		{
+			if(s.StartsWith("\t") || s.StartsWith(" "))
+				return 1;
+			else if(s.StartsWith("  "))
+				return 2;
+			else
+				return 0;
 		}
 	}
 }
