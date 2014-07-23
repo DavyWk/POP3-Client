@@ -16,7 +16,6 @@ namespace Core.Mail
 			// "=?ENCODING?X?encoded?="
 			
 			int index = 0;
-//			/s = s.Trim();
 			
 			string strCharset = s.SubstringEx('?', '?');
 			if(strCharset == string.Empty)

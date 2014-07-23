@@ -67,7 +67,7 @@
     <Compile Include="Core\Network\POP3Client.cs" />
     <Compile Include="Core\POP\Commands.cs" />
     <Compile Include="Core\POP\Constants.cs" />
-    <Compile Include="Core\POP\EStates.cs" />
+    <Compile Include="Core\POP\POPState.cs" />
     <Compile Include="Core\POP\Protocol.cs" />
     <Compile Include="Core\Helpers\Helpers.cs" />
     <Compile Include="Program.cs" />
@@ -79,6 +79,9 @@
     <Folder Include="Core\Mail" />
     <Folder Include="Core\Network" />
     <Folder Include="Core\POP" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="POP3 Client.cd" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

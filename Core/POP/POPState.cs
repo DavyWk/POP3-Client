@@ -1,6 +1,6 @@
 ﻿namespace Core.POP
 {
-	public enum EStates
+	public enum POPState
 	{
 		Authorization,
 		Transaction,

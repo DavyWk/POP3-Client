@@ -28,7 +28,7 @@ namespace Core.Network
 		public bool SSL { get; private set; }
 		public bool Connected { get; private set; }
 		
-		public EStates State { get; private set; }
+		public POPState State { get; private set; }
 		
 		
 		public POP3Client(string host, int port, bool ssl = false)
@@ -242,7 +242,7 @@ namespace Core.Network
 					else
 						return string.Empty;
 				}
-				State = EStates.Authorization;
+				State = POPState.Authorization;
 				
 				return Receive(); // Server ready
 			}
@@ -256,7 +256,7 @@ namespace Core.Network
 		
 		public string Login(string emailAddress, string password)
 		{
-			if(State != EStates.Authorization)
+			if(State != POPState.Authorization)
 				throw new InvalidOperationException(
 					string.Format(invalidOperation, State.ToString()));
 			
@@ -283,7 +283,7 @@ namespace Core.Network
 				{
 					return check; // Login limit ?
 				}
-				State = EStates.Transaction;
+				State = POPState.Transaction;
 			}
 
 			return response;
@@ -297,8 +297,8 @@ namespace Core.Network
 		public string Quit()
 		{
 			// POP3 logic ... cf. RFC 1939 p10
-			if(State == EStates.Transaction)
-				State = EStates.Update;
+			if(State == POPState.Transaction)
+				State = POPState.Update;
 			
 			SendCommand(Commands.QUIT);
 			
@@ -313,7 +313,7 @@ namespace Core.Network
 		/// 	Value: Size (in bytes)</returns>
 		public Dictionary<int,int> ListMessages()
 		{
-			if(State != EStates.Transaction)
+			if(State != POPState.Transaction)
 				throw new InvalidOperationException(
 					string.Format(invalidOperation, State.ToString()));
 			
@@ -339,7 +339,7 @@ namespace Core.Network
 		
 		public POPMessage GetMessage(int messageID)
 		{
-			if(State != EStates.Transaction)
+			if(State != POPState.Transaction)
 				throw new InvalidOperationException(
 					string.Format(invalidOperation, State.ToString()));
 			
