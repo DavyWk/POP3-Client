@@ -121,7 +121,7 @@ namespace Core.Mail
 			
 			// Handles multiple receivers.
 			var nextLine = string.Empty;
-			while((nextLine = lines[++offset]).StartsWith("  "))
+			while((nextLine = lines[++offset].Replace("\t", "  ")).StartsWith("  "))
 			{
 				// Remove double space.
 				nextLine = nextLine.Remove(0, 2);
@@ -140,6 +140,13 @@ namespace Core.Mail
 					Person receiver = new Person();
 					receiver.Name = s.SubstringEx('"', '"', index);
 					
+					if(receiver.Name  != string.Empty)
+					{
+						// Just to be sure it gets the correct string.
+						if(index > s.IndexOf(',', lastIndex))
+							receiver.Name = string.Empty;
+					}
+					
 					if(receiver.Name == string.Empty)
 						receiver.Name = s.SubstringEx(' ', '<', index).Trim();
 					
@@ -149,7 +156,7 @@ namespace Core.Mail
 						int nextColon = s.IndexOf(',', index);
 						if(nextColon == -1)
 							nextColon = s.Length;
-						receiver.EMailAddress = s.Substring(index, 
+						receiver.EMailAddress = s.Substring(index,
 						                                    nextColon - index)
 							.Trim();
 					}
@@ -158,6 +165,15 @@ namespace Core.Mail
 					// In case the name is the same as the email address.
 					if(receiver.Name == receiver.EMailAddress)
 						receiver.Name = string.Empty;
+					
+					// Just to handle the case where the address is between
+					// parenthesis.
+					if(receiver.EMailAddress.Replace("\"", string.Empty)
+					   == receiver.Name)
+					{
+						receiver.EMailAddress = receiver.Name;
+						receiver.Name = string.Empty;
+					}
 					
 					receivers.Add(receiver);
 				}
@@ -179,12 +195,12 @@ namespace Core.Mail
 			}
 			while ((index = s.IndexOf(',', index)) > 0);
 			
-			for(int i = 0; i < receivers.Count; i++)
-			{
-				var p = receivers[i];
-				var address = p.EMailAddress.ToLower();
-				p.EMailAddress = address;
-			}
+//			for(int i = 0; i < receivers.Count; i++)
+//			{
+//				var p = receivers[i];
+//				var address = p.EMailAddress.ToLower();
+//				p.EMailAddress = address;
+//			}
 			
 			return receivers;
 		}
@@ -315,20 +331,27 @@ namespace Core.Mail
 		}
 		
 		private Encoding GetEncoding(string s)
-		{
+		{ // Encoding.UTF8 is the default encoding.
+			
 			string encoding;
-			int index = s.IndexOf('=') + 1;
+			int index = s.IndexOf("charset=") + 8;
+			
+			if(index == 0)
+				return Encoding.UTF8;
 			
 			encoding = s.SubstringEx('"','"',index);
 			
 			// In case there is no quotation marks.
 			if(encoding == string.Empty)
-				encoding = s.Substring(index,s.Length - index);
+				encoding = s.Substring(index, s.Length - index);
 			
-			if(encoding.StartsWith("Content-Type:"))
-				return Encoding.UTF8;
-			if(s.Contains("/text") || s.Contains("/html")
-			   && encoding != string.Empty)
+			if(encoding.Contains(";"))
+			{
+				index = encoding.IndexOf(';');
+				encoding = encoding.Substring(0, index);
+			}
+
+			if(s.Contains("charset="))
 				return Encoding.GetEncoding(encoding);
 			else
 				return Encoding.UTF8;
@@ -350,19 +373,28 @@ namespace Core.Mail
 			{
 				string current = lines[i];
 				
+				if((i > bodyStart) && current.StartsWith("Content-Type:")
+				   && (charset == Encoding.UTF8))
+				{
+				   	charset = GetEncoding(current);
+				}
+				   
 				if(i > bodyStart)
 				{
-					if((htmlBegin == -1) && (current.StartsWith("<html>") ||
-					                         current.StartsWithEx("<!DOCTYPE html")))
+					if((htmlBegin == -1)
+					   && (current.StartsWith("<html>") ||
+					       current.StartsWithEx("<!DOCTYPE html")))
 						htmlBegin = i;
+					
 					if((htmlEnd == -1) && current.StartsWith("</html>"))
 						htmlEnd = i;
 					
 					// Sometimes lines end with = sign.
 					if(current.EndsWith("="))
 						current = current.Remove(current.Length - 1 , 1);
-					current = MailDecoder.RemoveJunk(current, Message.CharSet);
+					current = MailDecoder.RemoveJunk(current, charset);
 					
+					// Just in case there is no HTML.
 					lBody.Add(current);
 					
 					lines[i] = current;
@@ -370,22 +402,26 @@ namespace Core.Mail
 					continue;
 				}
 				
-				// Not accurate.
-				if(current.StartsWith("X-OriginalArrivalTime:"))
+				// Gets the first empty line (end of the headers).
+				if(string.IsNullOrWhiteSpace(current))
 				{
-					// Skips blank lines after X-OriginalArrivalTime.
+					// Skips blank lines
 					
-					int temp = i + 1;
-					while(string.IsNullOrWhiteSpace(lines[temp]))
-						temp++;
+					int offset = i + 1;
+					while(string.IsNullOrWhiteSpace(lines[offset]))
+						offset++;
 					
-					bodyStart = temp;
+					bodyStart = offset;
 				}
 			}
 			
-			if((htmlBegin != -1) && (htmlEnd != -1) && (htmlBegin < htmlEnd))
+			if((htmlBegin != -1) && (htmlBegin < htmlEnd))
+			{
 				lBody = lines.GetRange(htmlBegin, htmlEnd - htmlBegin);
+			}
+
 			
+			// If there is no HTML.
 			if(lBody.Count == 0)
 			{
 				int emptyLine = 0;
@@ -411,14 +447,12 @@ namespace Core.Mail
 						                                 Message.CharSet);
 					}
 				}
+				
 				lBody = lines.GetRange(emptyLine, lines.Count - emptyLine);
 			}
 			
 
-			body = string.Join("", lBody.ToArray());
-			
-			byte[] raw = Encoding.UTF8.GetBytes(body);
-			body = charset.GetString(raw);
+			body = string.Join(string.Empty, lBody.ToArray());
 			
 			return body;
 		}
