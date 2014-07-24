@@ -47,7 +47,7 @@ namespace Core.Mail
 			if(m.CharSet == null)
 				m.CharSet = Encoding.UTF8;
 			
-			m.ContainsHTML = CheckHTML();
+			m.ContainsHTML = CheckForHTML();
 			m.Body = GetBody(m.CharSet);
 			
 			Message = m;
@@ -240,7 +240,7 @@ namespace Core.Mail
 		
 		private static DateTime GetDate(string s)
 		{
-			s = MailDecoder.RemoveJunk(s);
+			s = MailDecoder.DecodeSpecialChars(s);
 			string dateFormat = "ddd dd MMM yyyy HH:mm:ss";
 			int index = s.IndexOf(':') + 1;
 			string date = s.Substring(index,s.Length - index);
@@ -277,7 +277,7 @@ namespace Core.Mail
 			if((date[index] == '-') || (date[index] == '+'))
 			{
 				index++;
-				utcOffset = date.Substring(index,lastSpace - index);
+				utcOffset = date.Substring(index, lastSpace - index);
 				index--;
 				
 				date = date.Substring(0,index);
@@ -286,7 +286,7 @@ namespace Core.Mail
 			int offsetHours = 0;
 			int.TryParse(utcOffset, out offsetHours);
 			offsetHours /= 100;
-			TimeSpan offset = new TimeSpan(Math.Abs(offsetHours),0,0);
+			TimeSpan offset = new TimeSpan(Math.Abs(offsetHours), 0, 0);
 			
 			// Remove any etra character at the end of the string.
 			for(int i = date.Length - 1; i > -1; i--)
@@ -338,7 +338,7 @@ namespace Core.Mail
 		{ // Encoding.UTF8 is the default encoding.
 			
 			string encoding;
-			int index = s.IndexOf("charset=") + 8;
+			int index = s.IndexOf("charset=") + 8; // 8: size of charset=
 			
 			if(index == 0)
 				return Encoding.UTF8;
@@ -380,9 +380,9 @@ namespace Core.Mail
 				if((i > bodyStart) && current.StartsWith("Content-Type:")
 				   && (charset == Encoding.UTF8))
 				{
-				   	charset = GetEncoding(current);
+					charset = GetEncoding(current);
 				}
-				   
+				
 				if(i > bodyStart)
 				{
 					if((htmlBegin == -1)
@@ -396,7 +396,7 @@ namespace Core.Mail
 					// Sometimes lines end with = sign.
 					if(current.EndsWith("="))
 						current = current.Remove(current.Length - 1 , 1);
-					current = MailDecoder.RemoveJunk(current, charset);
+					current = MailDecoder.DecodeSpecialChars(current, charset);
 					
 					// Just in case there is no HTML.
 					lBody.Add(current);
@@ -447,8 +447,8 @@ namespace Core.Mail
 						// Sometimes lines end with = sign.
 						if(current.EndsWith("="))
 							current = current.Remove(current.Length - 1 , 1);
-						current = MailDecoder.RemoveJunk(current,
-						                                 Message.CharSet);
+						current = MailDecoder.DecodeSpecialChars(current,
+						                                         Message.CharSet);
 					}
 				}
 				
@@ -461,9 +461,9 @@ namespace Core.Mail
 			return body;
 		}
 		
-		private bool CheckHTML()
+		private bool CheckForHTML()
 		{
-			var kv = CheckHtml();
+			var kv = CheckForHtml();
 			
 			if((kv.Key != -1) && (kv.Value != -1))
 				return true;
@@ -471,7 +471,7 @@ namespace Core.Mail
 				return false;
 		}
 		
-		private KeyValuePair<int,int> CheckHtml()
+		private KeyValuePair<int,int> CheckForHtml()
 		{
 			int begin = Int32.MaxValue;
 			int end =  Int32.MaxValue;
@@ -500,7 +500,7 @@ namespace Core.Mail
 				end = -1;
 			}
 			
-			return new KeyValuePair<int,int>(begin,end);
+			return new KeyValuePair<int, int>(begin, end);
 		}
 		
 

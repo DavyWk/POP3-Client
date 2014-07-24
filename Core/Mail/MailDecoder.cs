@@ -9,10 +9,13 @@ namespace Core.Mail
 {
 	public static class MailDecoder
 	{
+		/// <summary>
+		/// Translates encoded string into readable ones.
+		/// </summary>
+		/// <remarks>For strings like "=?UTF-8?B?ZGF2eWRhdmVraw==?="</remarks>
 		public static string RemoveEncoding(string s)
 		{
-			// For strings like:
-			// "=?UTF-8?B?ZGF2eWRhdmVraw==?="
+			// What seems to be a pattern :
 			// "=?ENCODING?X?encoded?="
 			
 			int index = 0;
@@ -83,7 +86,7 @@ namespace Core.Mail
 						encoded = current.Substring(index, endIndex - index);
 						byte[] raw = Encoding.UTF8.GetBytes(encoded);
 						decoded = charset.GetString(raw);
-						decoded = RemoveJunk(decoded, charset);
+						decoded = DecodeSpecialChars(decoded, charset);
 					}
 
 				}
@@ -100,16 +103,14 @@ namespace Core.Mail
 			return s;
 		}
 		
-		public static string RemoveJunk(string s, Encoding enc = null)
+		/// <summary>
+		/// Decodes special characters.
+		/// </summary>
+		/// <example>=E9 is the character 'é'</example>
+		public static string DecodeSpecialChars(string s, Encoding enc = null)
 		{
 			if(enc == null)
 				enc = Encoding.UTF8;
-			/* 
-               Sometimes, UTF characters are encoded like:
-			   =C3=EA=90
-			   Get all of the hexadecimal chars between the = signs, and then
-			   use Encoding.GetString() to get the UTF character.
-			 */
 			
 			// Should be const.
 			char[] HexChars = { 'A', 'B', 'C', 'D', 'E', 'F',
@@ -120,7 +121,7 @@ namespace Core.Mail
 			int lastIndex = -1;
 			
 			while((index < current.Length)
-			      && (index = current.IndexOf("=",index)) > -1)
+			      && (index = current.IndexOf("=", index)) > -1)
 			{
 				if(lastIndex == index)
 				{
@@ -138,14 +139,9 @@ namespace Core.Mail
 				int next = index;
 				var hex = new List<byte>();
 				
-				string hexString = current.Substring(index, 2);
-				if(!hexString.ToCharArray().Contains(HexChars))
-					break;
-				byte b = (byte)GetCharFromHex(hexString);
-				if(b == 0)
-					break;
+				var hexString = string.Empty;
+				byte b = 0;
 				
-				hex.Add(b);
 				while((next = current.IndexOf('=', next) + 1) > index)
 				{
 					if((next - 3) != index)
@@ -164,8 +160,7 @@ namespace Core.Mail
 				// Gets to the end of the encoded string.
 				index += 2;
 				
-				// Original is used to keep the = sign at the
-				// beginning.
+				// Original is used to keep the = sign at the beginning.
 				string original =
 					current.Substring(lastIndex, index - lastIndex);
 				string decoded = enc.GetString(hex.ToArray());
@@ -182,6 +177,8 @@ namespace Core.Mail
 		
 		private static char GetCharFromHex(string hexString)
 		{
+			// Its actually getting bytes but since it is dealing with strings,
+			// using chars makes more sense.
 			if(char.IsLetterOrDigit(hexString[0])
 			   && (char.IsLetterOrDigit(hexString[1])
 			       || char.IsWhiteSpace(hexString[1])))

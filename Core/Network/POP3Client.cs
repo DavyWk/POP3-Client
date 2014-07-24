@@ -325,6 +325,10 @@ namespace Core.Network
 		}
 		
 		
+		/// <summary>
+		/// Gets all messages stored on the server.
+		/// </summary>
+		/// <remarks>Not optimized, can take minutes to execute.</remarks>
 		public List<POPMessage> GetMessages()
 		{
 			var messageList = new List<POPMessage>();
@@ -337,6 +341,12 @@ namespace Core.Network
 			return messageList;
 		}
 		
+		/// <summary>
+		/// Gets the message stored with "messageID" on the server. <br/>
+		/// If the message does not exist, returns null.
+		/// </summary>
+		/// <returns>The message stored with "messageID" on the server,
+		/// or a message with ID "-1" in case of error.</returns>
 		public POPMessage GetMessage(int messageID)
 		{
 			if(State != POPState.Transaction)
@@ -345,7 +355,15 @@ namespace Core.Network
 			
 			SendCommand("{0} {1}", Commands.RETRIEVE, messageID);
 			
-			return new MailParser(ReceiveMultiLine()).Message;
+			if(Protocol.CheckHeader(Receive()))
+				return new MailParser(ReceiveMultiLine()).Message;
+			else
+			{
+				var ret = new POPMessage();
+				ret.Value.ID = Constants.INVALID;
+				
+				return POPMessage)ret;
+			}
 		}
 	}
 }
