@@ -22,32 +22,63 @@ namespace Core.Network
 		private const string invalidOperation =
 			"Cannot execute this command in the {0} state";
 		
-		public int Port { get; private set; }
-		public string Host { get; private set; }
-		public IPAddress IP { get; private set; }
-		public bool SSL { get; private set; }
-		public bool Connected { get; private set; }
+		private readonly int _port;
+		public int Port
+		{
+			get
+			{
+				return _port;
+			}
+		}
+		
+		private readonly string _host;
+		public string Host
+		{
+			get
+			{
+				return _host;
+			}
+		}
+		
+		private readonly IPAddress _ip;
+		public IPAddress IP
+		{
+			get
+			{
+				return _ip;
+			}
+		}
+		
+		private readonly bool _ssl;
+		public bool SSL
+		{
+			get
+			{
+				return _ssl;
+			}
+		}
+		
+		public bool Connected
+		{
+			get
+			{
+				if(client != null)
+					return client.Connected;
+				else
+					throw new ObjectDisposedException("client");
+			}
+		}	
 		
 		public POPState State { get; private set; }
 		
 		
 		public POP3Client(string host, int port, bool ssl = false)
 		{
-			Host = host;
-			Port = port;
+			_host = host;
+			_port = port;
 			client = new TcpClient();
-			SSL = ssl;
-			
-			IPAddress[] ips = Dns.GetHostAddresses(host);
-			foreach(var i in ips)
-			{
-				// Check for the first IPv4 address.
-				if(i.AddressFamily == AddressFamily.InterNetwork)
-				{
-					IP = i;
-					break;
-				}
-			}
+			_ssl = ssl;
+			_ip = Dns.GetHostAddresses(Host)[0];
 		}
 		
 		#region Implementing IDisposable
@@ -109,8 +140,8 @@ namespace Core.Network
 		
 		public void SendCommand(string command)
 		{
-			if(!this.Connected)
-				return;
+			if(!client.Connected)
+				Connect();
 			
 			try
 			{
@@ -155,6 +186,9 @@ namespace Core.Network
 		
 		public string Receive()
 		{
+			if(!Connected)
+				Connect();
+			
 			var received = new List<byte>();
 			string response;
 			
@@ -204,11 +238,10 @@ namespace Core.Network
 		/// an empty string if the connection failed.</returns>
 		public string Connect()
 		{
-			if(this.Connected)
+			if(Connected)
 			{
 				Quit();
 				InternalClose();
-				this.Connected = false;
 				
 				client = new TcpClient();
 			}
@@ -228,7 +261,6 @@ namespace Core.Network
 				stream = client.GetStream();
 				Utils.Logger.Network("Connected to {0}({1}) on port {2}",
 				                     IP, Host, Port);
-				this.Connected = true;
 				
 				if(SSL)
 				{
@@ -355,15 +387,19 @@ namespace Core.Network
 			
 			SendCommand("{0} {1}", Commands.RETRIEVE, messageID);
 			
-			if(Protocol.CheckHeader(Receive()))
-				return new MailParser(ReceiveMultiLine()).Message;
+			POPMessage ret;
+			string response = Receive();
+			
+			if(Protocol.CheckHeader(response))
+				ret = new MailParser(ReceiveMultiLine()).Message;
 			else
 			{
-				var ret = new POPMessage();
-				ret.Value.ID = Constants.INVALID;
-				
-				return POPMessage)ret;
+				ret = new POPMessage();
+				ret.ID = Constants.INVALID;
+				ret.Body = Protocol.RemoveHeader(response);
 			}
+			
+			return ret;
 		}
 	}
 }
