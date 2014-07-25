@@ -46,6 +46,11 @@ namespace Core.Mail
 				m.Subject = "(No Subject)";
 			if(m.CharSet == null)
 				m.CharSet = Encoding.UTF8;
+			if(m.Receivers == null)
+			{
+				m.Receivers = new List<Person>();
+				m.Receivers.Add(new Person("ERROR", "ERROR"));
+			}
 			
 			m.ContainsHTML = CheckForHTML();
 			m.Body = GetBody(m.CharSet);

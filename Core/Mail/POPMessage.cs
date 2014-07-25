@@ -6,16 +6,21 @@ using Utils;
 
 namespace Core.Mail
 {
-	public struct POPMessage
+	public class POPMessage
 	{
-		public string ID;
-		public List<Person> Receivers;
-		public Person Sender;
-		public string Body;
-		public string Subject;
-		public Encoding CharSet;
-		public DateTime ArrivalTime;
-		public bool ContainsHTML;
+		public string ID { get; set; }
+		public List<Person> Receivers { get; set; }
+		public Person Sender { get; set; }
+		public string Body { get; set; }
+		public string Subject { get; set; }
+		public Encoding CharSet { get; set; }
+		public DateTime ArrivalTime { get; set; }
+		public bool ContainsHTML { get; set; }
+		
+		public POPMessage()
+		{
+			
+		}
 		
 	}
 

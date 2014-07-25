@@ -2,11 +2,16 @@
 
 namespace Core.Mail
 {
-	public struct Person
+	public class Person
 	{
-		public string Name;
-		public string EMailAddress;
+		public string Name { get; set; }
+		public string EMailAddress { get; set; }
 		
+		public Person()
+		{
+			Name = string.Empty;
+			EMailAddress = string.Empty;
+		}
 		public Person(string name, string emailAddress)
 		{
 			EMailAddress = emailAddress;

@@ -367,7 +367,9 @@ namespace Core.Network
 			
 			foreach(KeyValuePair<int,int> kv in ListMessages())
 			{
-				messageList.Add(GetMessage(kv.Key));
+				POPMessage m = GetMessage(kv.Key);
+				if(m != null)
+					messageList.Add(m);
 			}
 			
 			return messageList;
@@ -387,17 +389,10 @@ namespace Core.Network
 			
 			SendCommand("{0} {1}", Commands.RETRIEVE, messageID);
 			
-			POPMessage ret;
-			string response = Receive();
+			POPMessage ret = null;
 			
-			if(Protocol.CheckHeader(response))
+			if(Protocol.CheckHeader(Receive()))
 				ret = new MailParser(ReceiveMultiLine()).Message;
-			else
-			{
-				ret = new POPMessage();
-				ret.ID = Constants.INVALID;
-				ret.Body = Protocol.RemoveHeader(response);
-			}
 			
 			return ret;
 		}
