@@ -9,7 +9,7 @@ namespace Utils
 	{
 		Info,
 		Error,
-		Debug,	
+		Debug,
 		Inbox,
 		Network,
 		Success,
@@ -156,41 +156,6 @@ namespace Utils
 		}
 		
 		
-		private static ConsoleColor GetColor(LogType type)
-		{
-			ConsoleColor c = Console.ForegroundColor;
-			
-			switch (type)
-			{
-				case LogType.Info:
-					c = ConsoleColor.White;
-					break;
-				case LogType.Network:
-					c = ConsoleColor.Cyan;
-					break;
-				case LogType.Debug:
-					c = ConsoleColor.DarkGreen;
-					break;
-				case LogType.Error:
-					c = ConsoleColor.Red;
-					break;
-				case LogType.Success:
-					c = ConsoleColor.Green;
-					break;
-				case LogType.Unknown:
-					c = ConsoleColor.Yellow;
-					break;
-				case LogType.Inbox:
-					c = ConsoleColor.Magenta;
-					break;
-
-				default:
-					break;
-			}
-			
-			return c;
-		}
-		
 		public static void LogConsole(LogType type, string format,
 		                              params object[] args)
 		{
@@ -204,9 +169,8 @@ namespace Utils
 
 			status = type;
 			
-			Console.ForegroundColor = GetColor(type);
-			string colored = string.Format("<{0}>", type.ToString());
-			Console.Write("{0, -9} ", colored);
+			Console.ForegroundColor = LoggerUtils.GetColor(type);
+			Console.Write("{0} ", LoggerUtils.PadType(type));
 			Console.ResetColor();
 			
 			Console.WriteLine(formatted);
@@ -218,15 +182,13 @@ namespace Utils
 		                           params object[] args)
 		{
 			var formatted = string.Format(format, args);
-			var header = string.Format("<{0}>", type.ToString());
-			var text = string.Format("{0, -9} {1}",
-			                            header, formatted);
+			var text = string.Format("{0} {1}",
+			                         LoggerUtils.PadType(type), formatted);
 			//TODO: Write a method to handle the padding.
 			status = type;
 			
 			LogFile(text);
 		}
-		
 		
 		private static void LogFile(string text)
 		{
@@ -234,7 +196,7 @@ namespace Utils
 				return;
 			
 			var dt = DateTime.Now;
-			var time = dt.ToString("[MM/dd/yyyy@hh:mm(tt)]", 
+			var time = dt.ToString("[MM/dd/yyyy@hh:mm(tt)]",
 			                       new System.Globalization.CultureInfo("en-US")
 			                      );
 			
@@ -244,6 +206,7 @@ namespace Utils
 			}
 		}
 		
+		
 		public static void Bind(string path)
 		{
 			filePath = path;
@@ -252,6 +215,63 @@ namespace Utils
 		public static void UnBind()
 		{
 			filePath = string.Empty;
+		}
+		
+		
+		
+		private static class LoggerUtils
+		{
+			
+			public static ConsoleColor GetColor(LogType type)
+			{
+				ConsoleColor c = Console.ForegroundColor;
+				
+				switch (type)
+				{
+					case LogType.Info:
+						c = ConsoleColor.White;
+						break;
+					case LogType.Network:
+						c = ConsoleColor.Cyan;
+						break;
+					case LogType.Debug:
+						c = ConsoleColor.DarkGreen;
+						break;
+					case LogType.Error:
+						c = ConsoleColor.Red;
+						break;
+					case LogType.Success:
+						c = ConsoleColor.Green;
+						break;
+					case LogType.Unknown:
+						c = ConsoleColor.Yellow;
+						break;
+					case LogType.Inbox:
+						c = ConsoleColor.Magenta;
+						break;
+
+					default:
+						break;
+				}
+				
+				return c;
+			}
+			
+			
+			public static string FormatType(LogType type)
+			{
+				return string.Format("<{0}>", type.ToString());
+			}
+			
+			public static string PadType(LogType type)
+			{
+				return PadType(FormatType(type));
+			}
+			
+			public static string PadType(string type)
+			{
+				return string.Format("{0, -9}", type);
+			}
 		}
 	}
 }
