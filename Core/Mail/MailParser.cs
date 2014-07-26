@@ -8,11 +8,14 @@ using Core.Mail;
 
 namespace Core.Mail
 {
+	//TODO: Support MIME format.
+	
 	public class MailParser
 	{
 		public POPMessage Message { get; private set; }
 		
 		private List<string> lines;
+		
 		
 		public MailParser(List<string> messageLines)
 		{
@@ -22,22 +25,23 @@ namespace Core.Mail
 			foreach(var l in lines)
 			{
 				// Just in case.
-				var s = l.Trim();
-				// Using string.ToLower() to check because sometimes
-				// the fields are in lowercase.
-				if(s.ToLower().StartsWith("message-id:"))
-					m.ID = GetID(s);
-				else if(s.ToLower().StartsWith("from:"))
-					m.Sender = GetSender(s);
-				else if(s.ToLower().StartsWith("to:"))
-					m.Receivers = GetReceivers(s);
-				else if(s.ToLower().StartsWith("subject:"))
-					m.Subject = GetSubject(s);
-				else if(s.ToLower().StartsWith("date:"))
-					m.ArrivalTime = GetDate(s);
-				else if(s.ToLower().StartsWith("content-type:"))
-					m.CharSet = GetEncoding(s);
-				else if(string.IsNullOrWhiteSpace(s))
+				var trimmed = l.Trim();
+				var lowered = trimmed.ToLower();
+				
+				if(lowered.StartsWith("message-id:"))
+					m.ID = GetID(trimmed);
+				else if(lowered.StartsWith("from:"))
+					m.Sender = GetSender(trimmed);
+				else if(lowered.StartsWith("to:"))
+					m.Receivers = GetReceivers(trimmed);
+				else if(lowered.StartsWith("subject:"))
+					m.Subject = GetSubject(trimmed);
+				// Date MUST be in lowercase
+				else if(lowered.StartsWith("date:"))
+					m.ArrivalTime = GetDate(lowered);
+				else if(lowered.StartsWith("content-type:"))
+					m.CharSet = GetEncoding(trimmed);
+				else if(string.IsNullOrWhiteSpace(trimmed))
 					break;
 			}
 			
@@ -57,6 +61,7 @@ namespace Core.Mail
 			
 			Message = m;
 		}
+		
 		
 		private static string GetID(string s)
 		{
@@ -122,7 +127,8 @@ namespace Core.Mail
 			int index = 0;
 			int lastIndex = 0;
 			var receivers = new List<Person>();
-			s = s.Replace("To:", string.Empty);
+			// +2: Also remove the space.
+			s = s.Remove(0, s.IndexOf(':') + 2);
 			
 			// Handles multiple receivers.
 			var nextLine = lines[++offset];
@@ -243,16 +249,17 @@ namespace Core.Mail
 			return ret;
 		}
 		
-		private static DateTime GetDate(string s)
+		[Obsolete("Not accurate. Use DateTime.Parse istead.")]
+		private static DateTime ParseDate(string s)
 		{
 			s = MailDecoder.DecodeSpecialChars(s);
 			string dateFormat = "ddd dd MMM yyyy HH:mm:ss";
 			int index = s.IndexOf(':') + 1;
-			string date = s.Substring(index,s.Length - index);
+			string date = s.Substring(index, s.Length - index);
 			
 			// If there is a double space, remove one space.
 			if(date.IndexOf("  ") > 0)
-				date = date.Remove(date.IndexOf("  "),1);
+				date = date.Remove(date.IndexOf("  "), 1);
 			
 
 			date = date.Replace(",", string.Empty).Trim();
@@ -272,7 +279,7 @@ namespace Core.Mail
 			// Remove stuff between parentheses.
 			if((date[index] == '(') && (date[lastSpace] == ')'))
 			{
-				date = date.Remove(index,date.Length - index);
+				date = date.Remove(index - 1, date.Length - index);
 				
 				index = date.LastIndexOfAny(new char[] { '-', '+'});
 				lastSpace = date.Length - 1;
@@ -282,10 +289,12 @@ namespace Core.Mail
 			if((date[index] == '-') || (date[index] == '+'))
 			{
 				index++;
+				lastSpace++;
 				utcOffset = date.Substring(index, lastSpace - index);
 				index--;
+				lastSpace--;
 				
-				date = date.Substring(0,index);
+				date = date.Substring(0, index);
 			}
 			
 			int offsetHours = 0;
@@ -299,19 +308,19 @@ namespace Core.Mail
 				if(char.IsDigit(date[i]))
 				{
 					i++;
-					date = date.Remove(i,date.Length - i);
+					date = date.Remove(i, date.Length - i);
 					break;
 				}
 			}
 
 			// Checks for different date format.
 			int day;
-			int.TryParse(date.Substring(0,1), out day);
+			int.TryParse(date.Substring(0, 1), out day);
 			if(day > 0)
 				dateFormat = dateFormat.Replace("ddd dd", "d");
 			
 			day = 0;
-			int.TryParse(date.Substring(4,2), out day);
+			int.TryParse(date.Substring(4, 2), out day);
 			if((day > 0) && (day < 10))
 				dateFormat = dateFormat.Replace("ddd dd", "ddd d");
 			
@@ -337,6 +346,15 @@ namespace Core.Mail
 			}
 			
 			return dt;
+		}
+		
+		private static DateTime GetDate(string s)
+		{
+			var date = s.Replace("date: ", string.Empty);
+			date = MailParsingUtils.RemoveParenthesisEnding(date);
+			date = MailParsingUtils.RemoveCharEnding(date);
+			
+			return DateTime.Parse(date);
 		}
 		
 		private Encoding GetEncoding(string s)
@@ -476,7 +494,7 @@ namespace Core.Mail
 				return false;
 		}
 		
-		private KeyValuePair<int,int> CheckForHtml()
+		private KeyValuePair<int, int> CheckForHtml()
 		{
 			int begin = Int32.MaxValue;
 			int end =  Int32.MaxValue;
@@ -507,7 +525,6 @@ namespace Core.Mail
 			
 			return new KeyValuePair<int, int>(begin, end);
 		}
-		
 
 	}
 }

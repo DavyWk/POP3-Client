@@ -61,6 +61,7 @@
   <ItemGroup>
     <Compile Include="Core\Mail\MailDecoder.cs" />
     <Compile Include="Core\Mail\MailParser.cs" />
+    <Compile Include="Core\Mail\MailParsingUtils.cs" />
     <Compile Include="Core\POP\CommandParsers\ListParser.cs" />
     <Compile Include="Core\Mail\POPMessage.cs" />
     <Compile Include="Core\Mail\Person.cs" />

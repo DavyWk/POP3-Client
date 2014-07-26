@@ -221,7 +221,7 @@ namespace Utils
 			var header = string.Format("<{0}>", type.ToString());
 			var text = string.Format("{0, -9} {1}",
 			                            header, formatted);
-			
+			//TODO: Write a method to handle the padding.
 			status = type;
 			
 			LogFile(text);
@@ -234,7 +234,9 @@ namespace Utils
 				return;
 			
 			var dt = DateTime.Now;
-			var time = dt.ToString("[MM-dd-yyyy@hh:mm]");
+			var time = dt.ToString("[MM/dd/yyyy@hh:mm(tt)]", 
+			                       new System.Globalization.CultureInfo("en-US")
+			                      );
 			
 			using(var sw = File.AppendText(filePath))
 			{
