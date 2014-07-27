@@ -181,10 +181,15 @@ namespace Utils
 		public static void LogFile(LogType type,string format,
 		                           params object[] args)
 		{
-			var formatted = string.Format(format, args);
+			string formatted;
+			if(args.Length == 0)
+				formatted = format;
+			else
+				formatted = string.Format(format, args);
+			
 			var text = string.Format("{0} {1}",
 			                         LoggerUtils.PadType(type), formatted);
-			//TODO: Write a method to handle the padding.
+			
 			status = type;
 			
 			LogFile(text);

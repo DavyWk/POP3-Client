@@ -35,5 +35,28 @@ namespace Core.Mail
 			
 			return s;
 		}
+		
+		/// <summary>
+		/// Adds 'No Subject' at the end if there is no subject.
+		/// </summary>
+		public static string CompleteSubject(string s)
+		{
+			const string terminator = "No Subject";
+			if(string.IsNullOrEmpty(s))
+				return terminator;
+			
+			int index = s.LastIndexOf(':');
+			if(index == -1)
+				return s;
+			
+			string after =  s.Substring(index, s.Length - index).Trim();
+			if(!string.IsNullOrWhiteSpace(after.Replace(':', ' ')))
+				return s;
+			
+			string beg = s.Substring(0, index + 1);
+			
+			
+			return string.Format("{0} {1}", beg, terminator);
+		}
 	}
 }

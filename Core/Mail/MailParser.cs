@@ -45,10 +45,9 @@ namespace Core.Mail
 				else if(string.IsNullOrWhiteSpace(trimmed))
 					break;
 			}
-			
+						
 			// Some SMTP sever don't send all the fields.
-			if(m.Subject == null)
-				m.Subject = "No Subject";
+			m.Subject = MailParsingUtils.CompleteSubject(m.Subject);
 			if(m.CharSet == null)
 				m.CharSet = Encoding.UTF8;
 			if(m.Receivers == null)
@@ -74,8 +73,10 @@ namespace Core.Mail
 			Person p = new Person();
 			// In case there's something interesting on
 			// the following line.
-			//TODO: Use 's' to get offset.
-			int offset = lines.IndexOf("From: ");
+			int offset = lines.IndexOf(s); // "From:"
+			if(offset == -1)
+				offset = lines.IndexOf(string.Concat(s, " ")); // "Fron: "
+			
 			string nextLine = lines[offset + 1];
 			int index = -1;
 			s = s.Replace("From:", string.Empty).Trim();
@@ -101,11 +102,6 @@ namespace Core.Mail
 			}
 			p.Name = p.Name.Replace('_', ' ');
 
-			
-			p.EMailAddress = s.SubstringEx('<', '>');
-			if(string.IsNullOrWhiteSpace(p.EMailAddress))
-				p.EMailAddress = s.Substring(index, s.Length - index);
-			
 			// In case the next line contains the email address.
 			if(nextLine.StartsWith("\t")
 			   || nextLine.StartsWith(" ")
@@ -121,6 +117,11 @@ namespace Core.Mail
 					p.EMailAddress = nextLine.SubstringEx('<', '>');
 				}
 			}
+			else
+				p.EMailAddress = s.SubstringEx('<', '>');
+			
+			if(string.IsNullOrWhiteSpace(p.EMailAddress))
+				p.EMailAddress = s.Substring(index, s.Length - index);
 			
 			// Just because it looks better.
 			p.EMailAddress = p.EMailAddress.ToLower();
@@ -221,12 +222,8 @@ namespace Core.Mail
 			
 			// Sometimes, addresses are in uppercase.
 			for(int i = 0; i < receivers.Count; i++)
-			{
-				var p = receivers[i];
-				var address = p.EMailAddress.ToLower();
-				p.EMailAddress = address;
-				receivers[i] = p;
-			}
+				receivers[i].EMailAddress = receivers[i].EMailAddress.ToLower();
+			
 			
 			return receivers;
 		}
@@ -236,30 +233,30 @@ namespace Core.Mail
 			int offset = lines.IndexOf(s);
 			// Skip space.
 			int index = s.IndexOf(':') + 2;
-			string ret = "(No Subject)";
+			var ret = string.Empty;
+			
 			if((index != -1) && (index < s.Length))
 			{
-				s = s.Substring(index,s.Length - index);
+				s = s.Substring(index, s.Length - index);
 				s = MailDecoder.RemoveEncoding(s);
-				if(s.Trim() == "RE:")
-					s = "RE: (No Subject)";
-				
 				ret = s;
 			}
+			
 			string nextLine = lines[offset+1];
 			if(nextLine.StartsWith("\t") || nextLine.StartsWith(" "))
 			{
 				nextLine = nextLine.Replace(" ", string.Empty);
 				nextLine = nextLine.Replace("\t", string.Empty);
 				nextLine = MailDecoder.RemoveEncoding(nextLine);
-				string.Concat(ret, nextLine);
+				ret = string.Concat(ret, nextLine);
 			}
 			// Some subjects are formatted like that ...
 			ret = ret.Replace('_', ' ');
+			ret = MailParsingUtils.CompleteSubject(ret);
 			
-			return ret;
+			return ret.Trim();
 		}
-		
+	
 		[Obsolete("Not accurate. Use DateTime.Parse istead.")]
 		private static DateTime ParseDate(string s)
 		{
