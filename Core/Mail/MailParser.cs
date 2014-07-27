@@ -9,6 +9,7 @@ using Core.Mail;
 namespace Core.Mail
 {
 	//TODO: Support MIME format.
+	//TODO: Handle Content-Transfer-Encoding.
 	
 	public class MailParser
 	{
@@ -32,7 +33,7 @@ namespace Core.Mail
 					m.ID = GetID(trimmed);
 				else if(lowered.StartsWith("from:"))
 					m.Sender = GetSender(trimmed);
-				else if(lowered.StartsWith("to:"))
+				else if(lowered.StartsWith("to:") && (m.Receivers == null))
 					m.Receivers = GetReceivers(trimmed);
 				else if(lowered.StartsWith("subject:"))
 					m.Subject = GetSubject(trimmed);
@@ -47,7 +48,7 @@ namespace Core.Mail
 			
 			// Some SMTP sever don't send all the fields.
 			if(m.Subject == null)
-				m.Subject = "(No Subject)";
+				m.Subject = "No Subject";
 			if(m.CharSet == null)
 				m.CharSet = Encoding.UTF8;
 			if(m.Receivers == null)
@@ -73,16 +74,19 @@ namespace Core.Mail
 			Person p = new Person();
 			// In case there's something interesting on
 			// the following line.
-			int offset = lines.IndexOf(s);
+			//TODO: Use 's' to get offset.
+			int offset = lines.IndexOf("From: ");
 			string nextLine = lines[offset + 1];
-			
-			int index = s.IndexOf(':') + 2;
-			if(index < s.Length - 1)
-				s = s.Substring(index, s.Length - index);
-			index = 0;
+			int index = -1;
+			s = s.Replace("From:", string.Empty).Trim();
 			s = MailDecoder.RemoveEncoding(s);
 			
-			if(s.IndexOf('"') > 0)
+			if(string.IsNullOrWhiteSpace(s))
+			{ // Means that sender info is on the other line.
+				return GetSender(nextLine);
+			}
+			
+			if(s.IndexOf('"') > -1)
 				p.Name = s.SubstringEx('"', '"');
 			else
 			{
@@ -95,19 +99,19 @@ namespace Core.Mail
 				else
 					index = 0;
 			}
+			p.Name = p.Name.Replace('_', ' ');
 
 			
 			p.EMailAddress = s.SubstringEx('<', '>');
 			if(string.IsNullOrWhiteSpace(p.EMailAddress))
-				p.EMailAddress = s.Substring(index,s.Length - index);
+				p.EMailAddress = s.Substring(index, s.Length - index);
 			
-			if(string.IsNullOrWhiteSpace(p.EMailAddress))
-			{ // Means that sender info is on the other line.
-				return GetSender(nextLine);
-			}
-			
-			if(nextLine.StartsWith("\t"))
+			// In case the next line contains the email address.
+			if(nextLine.StartsWith("\t")
+			   || nextLine.StartsWith(" ")
+			   || nextLine.StartsWith("  "))
 			{
+				nextLine = nextLine.Replace('\t', ' ');
 				nextLine = nextLine.Trim();
 				// If next line contains a valid email address.
 				if(nextLine.StartsWith("<")
@@ -118,17 +122,24 @@ namespace Core.Mail
 				}
 			}
 			
+			// Just because it looks better.
+			p.EMailAddress = p.EMailAddress.ToLower();
+			
 			return p;
 		}
 		
 		private List<Person> GetReceivers(string s)
 		{
 			int offset = lines.IndexOf(s);
-			int index = 0;
+			int index = s.IndexOf(':');
 			int lastIndex = 0;
 			var receivers = new List<Person>();
+			
+			// In case there is nothing after the "To:".
+			if((index + 1) == s.Length)
+				return null;
 			// +2: Also remove the space.
-			s = s.Remove(0, s.IndexOf(':') + 2);
+			s = s.Remove(0, index + 2);
 			
 			// Handles multiple receivers.
 			var nextLine = lines[++offset];
@@ -350,7 +361,7 @@ namespace Core.Mail
 		
 		private static DateTime GetDate(string s)
 		{
-			var date = s.Replace("date: ", string.Empty);
+			var date = s.Replace("date:", string.Empty).Trim();
 			date = MailParsingUtils.RemoveParenthesisEnding(date);
 			date = MailParsingUtils.RemoveCharEnding(date);
 			

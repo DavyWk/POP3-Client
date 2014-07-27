@@ -54,10 +54,12 @@ namespace POP3_Client
 			}
 			Logger.Inbox("{0} messages, {1} bytes total.", nb, size);
 
+			c.GetMessage(16);
 			int i = 1;
 			foreach (POPMessage m in c.GetMessages())
 			{
-				Logger.Inbox(m.Subject);
+				Logger.Debug(true, "{0}: {1} | {2}", 
+				             i, m.Sender.Name, m.Sender.EMailAddress);
 				i++;
 			}
 			

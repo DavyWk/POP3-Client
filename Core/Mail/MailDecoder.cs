@@ -12,7 +12,8 @@ namespace Core.Mail
 		/// <summary>
 		/// Translates encoded string into readable ones.
 		/// </summary>
-		/// <remarks>For strings like "=?UTF-8?B?ZGF2eWRhdmVraw==?="</remarks>
+		/// <example>For strings like "=?UTF-8?B?ZGF2eWRhdmVraw==?="</example>
+		/// <remarks>Need to refactor this method into smaller ones.</remarks>
 		public static string RemoveEncoding(string s)
 		{
 			// What seems to be a pattern :
@@ -84,9 +85,9 @@ namespace Core.Mail
 					if((index != -1) && (endIndex != -1))
 					{
 						encoded = current.Substring(index, endIndex - index);
-						byte[] raw = Encoding.UTF8.GetBytes(encoded);
-						decoded = charset.GetString(raw);
-						decoded = DecodeSpecialChars(decoded, charset);
+						//byte[] raw = Encoding.UTF8.GetBytes(encoded);
+						//decoded = charset.GetString(raw);
+						decoded = DecodeSpecialChars(encoded, charset);
 					}
 
 				}
@@ -107,6 +108,7 @@ namespace Core.Mail
 		/// Decodes special characters.
 		/// </summary>
 		/// <example>=E9 is the character 'é'</example>
+		/// <remarks>Need to refactor this method into smaller ones.</remarks>
 		public static string DecodeSpecialChars(string s, Encoding enc = null)
 		{
 			if(enc == null)
@@ -138,23 +140,32 @@ namespace Core.Mail
 				
 				int next = index;
 				var hex = new List<byte>();
+
+				string hexString = current.Substring(index, 2);
+				if(!hexString.ToCharArray().Contains(HexChars))
+					break;
 				
-				var hexString = string.Empty;
-				byte b = 0;
+				byte b = (byte)GetCharFromHex(hexString);
+				if(b == 0)
+					break;
+
+				hex.Add(b);
 				
 				while((next = current.IndexOf('=', next) + 1) > index)
 				{
 					if((next - 3) != index)
 						break;
-					
+
 					index = next;
-					
+
 					hexString = current.Substring(index, 2);
 					if(!hexString.ToCharArray().Contains(HexChars))
 						break;
+					
 					b = (byte)GetCharFromHex(hexString);
 					if(b == 0)
 						break;
+					
 					hex.Add(b);
 				}
 				// Gets to the end of the encoded string.
