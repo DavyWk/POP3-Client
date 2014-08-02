@@ -343,7 +343,7 @@ namespace Core.Network
 		/// <returns>A dictorinary of key-value pair where:<br/>
 		/// 	Key: ID of the message <br/>
 		/// 	Value: Size (in bytes)</returns>
-		public Dictionary<int,int> ListMessages()
+		public Dictionary<int, int> ListMessages()
 		{
 			if(State != POPState.Transaction)
 				throw new InvalidOperationException(
@@ -395,6 +395,23 @@ namespace Core.Network
 				ret = new MailParser(ReceiveMultiLine()).Message;
 			
 			return ret;
+		}
+		
+		/// <summary>
+		/// Get statistics of the mailbox.
+		/// </summary>
+		/// <returns>A KeyValuePair where : <br/>
+		/// Key: Number of messages <br/>
+		/// Value: Size of all messages (in byte)</returns>
+		public KeyValuePair<int, int> GetStats()
+		{
+			if(State != POPState.Transaction)
+				throw new InvalidOperationException(
+					string.Format(invalidOperation, State.ToString()));
+			
+			SendCommand(Commands.STAT);
+			
+			return StatParseer.Parse(Receive());
 		}
 	}
 }

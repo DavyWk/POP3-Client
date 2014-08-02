@@ -45,6 +45,12 @@
 		/// </summary>
 		public const string NoOperation = "NOOP";
 		
+		/// <summary>
+		/// C: STAT
+		/// S: NumberOfMessages SizeOfAllMessages
+		/// </summary>
+		public const string STAT = "STAT";
+		
 		
 		// Authorization OR Update state.
 		

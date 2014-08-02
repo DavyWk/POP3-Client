@@ -4,12 +4,17 @@
 	{
 		public static bool CheckHeader(string s)
 		{
-			if(s.Trim().StartsWith(Constants.OK))
+			if(s.TrimStart().StartsWith(Constants.OK))
 				return true;
 			else
 				return false;
 		}
 		
+		/// <summary>
+		/// Removes the "+OK"/"-ERR" header.
+		/// </summary>
+		/// <remarks>/!\ Will mess up if the string
+		/// is not correctly formatted.</remarks>
 		public static string RemoveHeader(string s)
 		{
 			// Just in case.
@@ -17,15 +22,7 @@
 			// Index of the beginning of the message.
 			int index = s.IndexOf(" ") + 1;
 
-			
-			if(s.StartsWith(Constants.OK))
-			{
-				s = s.Substring(index, s.Length - index);
-			}
-			else if(s.StartsWith(Constants.ERROR))
-			{
-				s = s.Substring(index, s.Length - index);
-			}
+			s = s.Substring(index, s.Length - index);
 			
 			return s;
 		}

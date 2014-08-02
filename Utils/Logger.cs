@@ -37,24 +37,23 @@ namespace Utils
 		                           params object[] args)
 		{
 			string s = string.Format(format, args).Trim();
+			bool success = Protocol.CheckHeader(s);
+			s = Protocol.RemoveHeader(s);
+			s = s.Capitalize();
 			
 			if(file)
 			{
-				if(Protocol.CheckHeader(s))
-					LogFile(LogType.Success,Protocol.RemoveHeader(s));
-				else if(s.StartsWith(Constants.ERROR))
-					LogFile(LogType.Error, Protocol.RemoveHeader(s));
+				if(success)
+					LogFile(LogType.Success, s);
 				else
-					LogFile(LogType.Unknown,s);
+					LogFile(LogType.Error, s);
 			}
 			else
 			{
-				if(Protocol.CheckHeader(s))
-					LogConsole(LogType.Success, Protocol.RemoveHeader(s));
-				else if(s.StartsWith(Constants.ERROR))
-					LogConsole(LogType.Error, Protocol.RemoveHeader(s));
+				if(success)
+					LogConsole(LogType.Success, s);
 				else
-					LogConsole(LogType.Unknown,s);
+					LogConsole(LogType.Error, s);
 			}
 		}
 		public static void Command(string format, params object[] args)

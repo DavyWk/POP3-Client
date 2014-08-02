@@ -43,23 +43,17 @@ namespace POP3_Client
 				Console.ReadLine();
 				Environment.Exit(1);
 			}
+	
+			var kv = c.GetStats();
+			Logger.Inbox("{0} messages, {1} bytes total.", kv.Key, kv.Value);
 			
-			int size = 0;
-			int nb = 0;
-			
-			foreach (KeyValuePair<int, int> kv in c.ListMessages())
-			{
-				size += kv.Value;
-				nb++;
-			}
-			Logger.Inbox("{0} messages, {1} bytes total.", nb, size);
-
-			int i = 1;
-			foreach (POPMessage m in c.GetMessages())
-			{
-				Logger.Debug(true, "{0} : {1}", i , m.Subject);
-				i++;
-			}
+//			Logger.Debug(c.GetMessage(nb-2).Subject);
+//			int i = 1;
+//			foreach (POPMessage m in c.GetMessages())
+//			{
+//				Logger.Debug(true, "{0} : {1}", i , m.Subject);
+//				i++;
+//			}
 			
 			Logger.Command(c.Quit());
 			
