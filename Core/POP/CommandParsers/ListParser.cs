@@ -7,7 +7,7 @@ namespace Core.POP.CommandParser
 {
     public static class ListParser
     {
-        public static Dictionary<int,int>  Parse(List<string> messageList)
+        public static Dictionary<int, int> Parse(List<string> messageList)
         {
             Dictionary<int, int> dic = new Dictionary<int, int>();
             foreach(string s in messageList)
@@ -24,9 +24,9 @@ namespace Core.POP.CommandParser
             return dic;
         }
 
-        public static void Display(Dictionary<int,int> messages)
+        public static void Display(Dictionary<int, int> messages)
         {
-            foreach(KeyValuePair<int,int> kv in messages)
+            foreach(KeyValuePair<int, int> kv in messages)
             {
                 Logger.Inbox("{0} - {1} bytes", kv.Key, kv.Value);
             }

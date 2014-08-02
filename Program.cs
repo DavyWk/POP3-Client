@@ -38,7 +38,7 @@ namespace POP3_Client
 			password = HelperMethods.ReadPassword();
 			
 			Logger.Command(c.Login(address, password.ToAsciiString()));
-			if(Logger.Status == LogType.Error)
+			if(!c.Connected)
 			{
 				Console.ReadLine();
 				Environment.Exit(1);
@@ -47,13 +47,8 @@ namespace POP3_Client
 			var kv = c.GetStats();
 			Logger.Inbox("{0} messages, {1} bytes total.", kv.Key, kv.Value);
 			
-//			Logger.Debug(c.GetMessage(nb-2).Subject);
-//			int i = 1;
-//			foreach (POPMessage m in c.GetMessages())
-//			{
-//				Logger.Debug(true, "{0} : {1}", i , m.Subject);
-//				i++;
-//			}
+			Core.POP.CommandParser.ListParser.Display(c.ListMessages());
+
 			
 			Logger.Command(c.Quit());
 			

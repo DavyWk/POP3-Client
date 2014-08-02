@@ -338,7 +338,7 @@ namespace Core.Network
 		}
 		
 		/// <summary>
-		/// Gets the list  messages stored on the server.
+		/// Gets the list messages stored on the server.
 		/// </summary>
 		/// <returns>A dictorinary of key-value pair where:<br/>
 		/// 	Key: ID of the message <br/>
@@ -349,13 +349,31 @@ namespace Core.Network
 				throw new InvalidOperationException(
 					string.Format(invalidOperation, State.ToString()));
 			
-			SendCommand(Commands.LIST);
+			SendCommand(Commands.LISTMSG);
 			Receive();
 			List<string> received = ReceiveMultiLine();
 			
 			return ListParser.Parse(received);
 		}
 		
+		/// <returns>The size of the message or
+		/// -1 is the message does not exist.</returns>
+		public int GetSize(int msgNumber)
+		{
+			if(State != POPState.Transaction)
+				throw new InvalidOperationException(
+					string.Format(invalidOperation, State.ToString()));
+			
+			SendCommand("{0} {1}", Commands.LISTMSG, msgNumber);
+			string response = Receive();
+			if(!Protocol.CheckHeader(response))
+				return -1;
+			response = Protocol.RemoveHeader(response);
+			
+			string[] elements = response.Split(' ');
+			
+			return int.Parse(elements[1]);
+		}
 		
 		/// <summary>
 		/// Gets all messages stored on the server.
