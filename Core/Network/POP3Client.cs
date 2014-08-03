@@ -67,7 +67,15 @@ namespace Core.Network
 				else
 					throw new ObjectDisposedException("client");
 			}
-		}	
+		}
+		
+		public bool LoggedIn
+		{
+			get
+			{
+				return CheckConnection();
+			}
+		}
 		
 		public POPState State { get; private set; }
 		
@@ -177,6 +185,8 @@ namespace Core.Network
 					break;
 				if(line.StartsWith(Constants.ERROR))
 					break;
+				if(string.IsNullOrEmpty(line))
+					break;
 				
 				received.Add(line);
 			}
@@ -281,8 +291,27 @@ namespace Core.Network
 			else
 				return string.Empty;
 		}
+	
 		
+		private string CheckConnection(bool dummy = false)
+		{
+			SendCommand(Commands.NoOperation);
+			
+			return Receive();
+		}
 		
+		/// <summary>
+		/// Checks if logged in or not
+		/// </summary>
+		/// <remarks>Mostly used for login limit check</remarks>
+		private bool CheckConnection()
+		{
+			SendCommand(Commands.NoOperation);
+			
+			return Protocol.CheckHeader(CheckConnection(false));
+		}
+		
+
 
 
 		
@@ -308,13 +337,10 @@ namespace Core.Network
 
 			if(Protocol.CheckHeader(response))
 			{
-				SendCommand(Commands.NoOperation);
-				
-				string check = Receive();
+				string check = CheckConnection(false);
 				if(!Protocol.CheckHeader(check))
-				{
-					return check; // Login limit ?
-				}
+					return check;
+				
 				State = POPState.Transaction;
 			}
 
@@ -456,9 +482,28 @@ namespace Core.Network
 		/// </summary>
 		public void Reset()
 		{
+			if(State != POPState.Transaction)
+				throw new InvalidOperationException(
+					string.Format(invalidOperation, State.ToString()));
+			
 			SendCommand(Commands.RESET);
 			// Just '+OK' so there is no need to log it
 			Receive();
+		}
+		
+		public List<string> Top(int messageID, int nLines)
+		{
+			if(State != POPState.Transaction)
+				throw new InvalidOperationException(
+					string.Format(invalidOperation, State.ToString()));
+			
+			SendCommand("{0} {1} {2}", Commands.TOP, messageID, nLines);
+			
+			var ret = ReceiveMultiLine();
+			if(string.IsNullOrEmpty(ret[ret.Count - 1]))
+				ret.Remove(ret[ret.Count - 1]);
+			
+			return ret;
 		}
 	}
 }

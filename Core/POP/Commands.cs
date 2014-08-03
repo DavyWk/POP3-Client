@@ -65,16 +65,25 @@
 		/// </summary>
 		public const string RESET = "RSET";
 		
+		/// <summary>
+		/// C: Top msg n <br/>
+		/// S: msg header + n first lines
+		/// ..
+		/// </summary>
+		public const string TOP = "TOP";
+		
 		#endregion
 		
 		
-		// Authorization OR Update state.
+		#region Update
 		
 		/// <summary>
 		/// C: QUIT <br/>
 		/// S: Tells what changed
 		/// </summary>
 		public const string QUIT = "QUIT";
+		
+		#endregion
 		
 	}
 }

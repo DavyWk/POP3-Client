@@ -82,6 +82,12 @@
     <Folder Include="Core\Network" />
     <Folder Include="Core\POP" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="C:\Users\DavyOnly\Desktop\errors.log">
+      <Link>errors.log</Link>
+    </None>
+    <None Include="TODO.txt" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

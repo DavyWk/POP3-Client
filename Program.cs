@@ -38,7 +38,7 @@ namespace POP3_Client
 			password = HelperMethods.ReadPassword();
 			
 			Logger.Command(c.Login(address, password.ToAsciiString()));
-			if(!c.Connected)
+			if(!c.LoggedIn)
 			{
 				Console.ReadLine();
 				Environment.Exit(1);
@@ -49,8 +49,9 @@ namespace POP3_Client
 			             stats.Key, stats.Value);
 			
 			Core.POP.CommandParser.ListParser.Display(c.ListMessages());
-			Logger.Command(c.Delete(stats.Key));
-			//Logger.Command(c.Reset());
+
+			foreach(var s in c.Top(stats.Key, 2))
+				Logger.Inbox(s);
 
 			
 			Logger.Command(c.Quit());
