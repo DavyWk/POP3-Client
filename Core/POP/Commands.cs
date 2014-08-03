@@ -41,7 +41,7 @@
 		
 		/// <summary>
 		/// C: DELE msgNumber <br/>
-		/// S: ???
+		/// S: OK/ERR
 		/// </summary>
 		public const string DELETE = "DELE";
 		

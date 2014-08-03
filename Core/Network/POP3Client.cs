@@ -431,5 +431,24 @@ namespace Core.Network
 			
 			return StatParseer.Parse(Receive());
 		}
+		
+		/// <summary>
+		/// Deletes a message from the mailbox
+		/// </summary>
+		public string Delete(int messageID)
+		{
+			if(State != POPState.Transaction)
+				throw new InvalidOperationException(
+					string.Format(invalidOperation, State.ToString()));
+			
+			SendCommand("{0} {1}", Commands.DELETE, messageID);
+			
+			return Receive();
+		}
+		
+		public bool Delete(int messageID, bool dummy = false)
+		{
+			return Protocol.CheckHeader(Delete(messageID));
+		}
 	}
 }

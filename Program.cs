@@ -44,8 +44,9 @@ namespace POP3_Client
 				Environment.Exit(1);
 			}
 	
-			var kv = c.GetStats();
-			Logger.Inbox("{0} messages, {1} bytes total.", kv.Key, kv.Value);
+			var stats = c.GetStats();
+			Logger.Inbox("{0} messages, {1} bytes total.", 
+			             stats.Key, stats.Value);
 			
 			Core.POP.CommandParser.ListParser.Display(c.ListMessages());
 
