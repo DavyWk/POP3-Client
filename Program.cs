@@ -49,6 +49,8 @@ namespace POP3_Client
 			             stats.Key, stats.Value);
 			
 			Core.POP.CommandParser.ListParser.Display(c.ListMessages());
+			Logger.Command(c.Delete(stats.Key));
+			//Logger.Command(c.Reset());
 
 			
 			Logger.Command(c.Quit());

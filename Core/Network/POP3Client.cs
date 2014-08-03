@@ -450,5 +450,15 @@ namespace Core.Network
 		{
 			return Protocol.CheckHeader(Delete(messageID));
 		}
+		
+		/// <summary>
+		/// Restores the message deleted during the current session.
+		/// </summary>
+		public void Reset()
+		{
+			SendCommand(Commands.RESET);
+			// Just '+OK' so there is no need to log it
+			Receive();
+		}
 	}
 }

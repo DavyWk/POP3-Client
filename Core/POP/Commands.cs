@@ -2,7 +2,7 @@
 {
 	public static class Commands
 	{
-		// Authorization state.
+		#region Authorization
 		
 		/// <summary>
 		/// C: USER emailAddress <br/>
@@ -16,8 +16,10 @@
 		/// </summary>
 		public const string PASS = "PASS";
 		
+		#endregion
 		
-		// Transaction state.
+		
+		#region Transaction
 		
 		/// <summary>
 		/// C: RETR msgNumber <br/>
@@ -47,7 +49,7 @@
 		
 		/// <summary>
 		/// C: NOOP <br/>
-		/// S: OK/ERR
+		/// S: OK
 		/// </summary>
 		public const string NoOperation = "NOOP";
 		
@@ -56,6 +58,14 @@
 		/// S: NumberOfMessages SizeOfAllMessages
 		/// </summary>
 		public const string STAT = "STAT";
+		
+		/// <summary>
+		/// C: RSET <br/>
+		/// S: OK
+		/// </summary>
+		public const string RESET = "RSET";
+		
+		#endregion
 		
 		
 		// Authorization OR Update state.
