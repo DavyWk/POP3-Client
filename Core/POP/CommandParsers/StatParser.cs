@@ -4,7 +4,7 @@ using Core.POP;
 
 namespace Core.POP.CommandParser
 {
-	public static class StatParseer
+	public static class StatParser
 	{
 		public static KeyValuePair<int, int> Parse(string s)
 		{

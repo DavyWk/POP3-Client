@@ -185,8 +185,6 @@ namespace Core.Network
 					break;
 				if(line.StartsWith(Constants.ERROR))
 					break;
-				if(string.IsNullOrEmpty(line))
-					break;
 				
 				received.Add(line);
 			}
@@ -291,7 +289,7 @@ namespace Core.Network
 			else
 				return string.Empty;
 		}
-	
+		
 		
 		private string CheckConnection(bool dummy = false)
 		{
@@ -306,8 +304,6 @@ namespace Core.Network
 		/// <remarks>Mostly used for login limit check</remarks>
 		private bool CheckConnection()
 		{
-			SendCommand(Commands.NoOperation);
-			
 			return Protocol.CheckHeader(CheckConnection(false));
 		}
 		
@@ -455,7 +451,7 @@ namespace Core.Network
 			
 			SendCommand(Commands.STAT);
 			
-			return StatParseer.Parse(Receive());
+			return StatParser.Parse(Receive());
 		}
 		
 		/// <summary>
@@ -500,8 +496,11 @@ namespace Core.Network
 			SendCommand("{0} {1} {2}", Commands.TOP, messageID, nLines);
 			
 			var ret = ReceiveMultiLine();
+			// Removes +OK/-ERR at the beginning.
+			ret.RemoveAt(0);
+			
 			if(string.IsNullOrEmpty(ret[ret.Count - 1]))
-				ret.Remove(ret[ret.Count - 1]);
+				ret.RemoveAt(ret.Count -1);
 			
 			return ret;
 		}
