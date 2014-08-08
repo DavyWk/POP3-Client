@@ -324,12 +324,17 @@ namespace Core.Network
 				password.ThrowIfNullOrEmpty("password");
 			
 			SendCommand("{0} {1}", Commands.USER, emailAddress);
-			// "Send pass".
-			Receive();
+			
+			string response = Receive();
+			if(!Protocol.CheckHeader(response))
+			{ // invalid login
+				Quit();
+				return response;
+			}
 			
 			SendCommand("{0} {1}", Commands.PASS, password);
 			
-			string response = Receive();
+			response = Receive();
 
 			if(Protocol.CheckHeader(response))
 			{
@@ -343,10 +348,7 @@ namespace Core.Network
 			return response;
 		}
 		
-		/// <summary>
-		/// Disconnects from the POP3 server.
-		/// WARNING: DOES NOT CLOSE THE CONNECTION
-		/// </summary>
+		/// <summary>Disconnects from the POP3 server.</summary>
 		/// <returns>The server's exit meassage</returns>
 		public string Quit()
 		{
@@ -355,7 +357,7 @@ namespace Core.Network
 				State = POPState.Update;
 			
 			SendCommand(Commands.QUIT);
-			
+
 			return Receive();
 		}
 		

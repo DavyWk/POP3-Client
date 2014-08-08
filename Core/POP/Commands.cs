@@ -2,18 +2,21 @@
 {
 	public static class Commands
 	{
+		
 		#region Authorization
 		
-		/// <summary>
+		/// <summary>Sends user's email address for authentification.</summary>
+		/// <example>
 		/// C: USER emailAddress <br/>
 		/// S: OK/ERR
-		/// </summary>
+		/// </example>
 		public const string USER = "USER";
 		
-		/// <summary>
+		/// <summary>Sends password for authentification.</summary>
+		/// <example>
 		/// C: PASS password <br/>
-		/// S: Mailbox contains x msg
-		/// </summary>
+		/// S: Mailbox contains x msg | ERR
+		/// </example>
 		public const string PASS = "PASS";
 		
 		#endregion
@@ -21,69 +24,85 @@
 		
 		#region Transaction
 		
-		/// <summary>
-		/// C: RETR msgNumber <br/>
+		/// <summary>Retrives a message form the server.</summary>
+		/// <example>
+		/// C: RETR msgID <br/>
 		/// S: *message* <br/>
 		/// ..
-		/// </summary>
+		/// </example>
 		public const string RETRIEVE = "RETR";
 		
-		/// <summary>
+		/// <summary>Lists all message on the server.</summary>
+		/// <example>		
 		/// C: LIST <br/>
-		/// S: msgNumber nbOfBytes <br/>
+		/// S: msgID nbOfBytes <br/>
 		/// ..
-		/// </summary>
+		/// </example>
 		public const string LISTALL = "LIST";
 		
-		/// <summary>
-		/// C: LIST msgNumber <br/>
-		/// S: msgNumber nbOfBytes
-		/// </summary>
+		/// <summary>Lists a single message from the server.</summary>
+		/// <example>
+		/// C: LIST msgID <br/>
+		/// S: msgID nbOfBytes
+		/// </example>
 		public const string LISTMSG = "LIST";
 		
-		/// <summary>
-		/// C: DELE msgNumber <br/>
+		/// <summary>Deletes a message from the server.</summary>
+		/// <example>
+		/// C: DELE msgID <br/>
 		/// S: OK/ERR
-		/// </summary>
+		/// </example>
 		public const string DELETE = "DELE";
 		
-		/// <summary>
+		/// <summary>Does nothing.</summary>
+		/// <remarks>Mostly used for testing.</remarks>
+		/// <example>
 		/// C: NOOP <br/>
 		/// S: OK
-		/// </summary>
+		/// </example>
 		public const string NoOperation = "NOOP";
 		
-		/// <summary>
+		/// <summary>Retrieves stats about the mail account.</summary>
+		/// <example>
 		/// C: STAT <br/>
 		/// S: NumberOfMessages SizeOfAllMessages
-		/// </summary>
+		/// </example>
 		public const string STAT = "STAT";
 		
-		/// <summary>
+		/// <summary>Cancels deletion of messages.</summary>
+		/// <remarks>Valid only for current session.</remarks>
+		/// <example>
 		/// C: RSET <br/>
 		/// S: OK
-		/// </summary>
+		/// </example>
 		public const string RESET = "RSET";
 		
-		/// <summary>
-		/// C: Top msg n <br/>
-		/// S: msg header + n first lines
+		/// <summary>Gets the top of a message.</summary>>
+		/// <example>
+		/// C: TOP msg n <br/>
+		/// S: msg header + n first lines <br/>
 		/// ..
-		/// </summary>
+		/// </example>
 		public const string TOP = "TOP";
 		
+		/// <summary>Retrives a unique identifier for the message.</summary>
+		/// <remarks>If no message ID is provided,
+		/// the response will be multiline.</remarks>
+		/// <example>
+		/// C: UIDL msgID <br/>
+		/// S: uid
+		/// </example>
+		public const string UIDL = "UIDL";
+		
 		#endregion
 		
 		
-		#region Update
-		
-		/// <summary>
+		/// <summary>Ends the POP3 session.</summary>
+		/// <example>
 		/// C: QUIT <br/>
-		/// S: Tells what changed
-		/// </summary>
+		/// S: Tells what changed | Sign off message
+		/// </example>
 		public const string QUIT = "QUIT";
-		
-		#endregion
 		
 	}
 }

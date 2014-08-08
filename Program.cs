@@ -50,8 +50,8 @@ namespace POP3_Client
 			
 			Core.POP.CommandParser.ListParser.Display(c.ListMessages());
 
-			foreach(var s in c.Top(stats.Key, 2))
-				Logger.Inbox(s);
+//			foreach(var s in c.Top(stats.Key, 2))
+//				Logger.Inbox(s);
 
 			
 			Logger.Command(c.Quit());
