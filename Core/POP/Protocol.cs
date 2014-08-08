@@ -13,16 +13,15 @@
 		/// <summary>
 		/// Removes the "+OK"/"-ERR" header.
 		/// </summary>
-		/// <remarks>/!\ Will mess up if the string
-		/// is not correctly formatted.</remarks>
+		/// <remarks>Also removes the trailling space.</remarks>
 		public static string RemoveHeader(string s)
 		{
-			// Just in case.
 			s = s.Trim();
-			// Index of the beginning of the message.
-			int index = s.IndexOf(" ") + 1;
-
-			s = s.Substring(index, s.Length - index);
+			
+			if(CheckHeader(s))
+				s = s.Replace("+OK ", string.Empty);
+			else
+				s = s.Replace("-ERR ", string.Empty);
 			
 			return s;
 		}

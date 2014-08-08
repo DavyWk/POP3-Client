@@ -2,7 +2,7 @@
 
 using Core.POP;
 
-namespace Core.POP.CommandParser
+namespace Core.POP.CommandParsers
 {
 	public static class StatParser
 	{

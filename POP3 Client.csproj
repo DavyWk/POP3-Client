@@ -67,6 +67,7 @@
     <Compile Include="Core\Mail\Person.cs" />
     <Compile Include="Core\Network\POP3Client.cs" />
     <Compile Include="Core\POP\CommandParsers\StatParser.cs" />
+    <Compile Include="Core\POP\CommandParsers\UniqueIdentifierParser.cs" />
     <Compile Include="Core\POP\Commands.cs" />
     <Compile Include="Core\POP\Constants.cs" />
     <Compile Include="Core\POP\POPState.cs" />

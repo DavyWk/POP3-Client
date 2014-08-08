@@ -10,7 +10,7 @@ using Utils;
 using Core.Mail;
 using Core.Helpers;
 using Core.POP;
-using Core.POP.CommandParser;
+using Core.POP.CommandParsers;
 
 namespace Core.Network
 {
@@ -505,6 +505,24 @@ namespace Core.Network
 				ret.RemoveAt(ret.Count -1);
 			
 			return ret;
+		}
+		
+		public string GetUId(int messageID)
+		{
+			if(State != POPState.Transaction)
+				throw new InvalidOperationException(
+					string.Format(invalidOperation, State.ToString()));
+
+			SendCommand("{0} {1}", Commands.UIDL, messageID);
+			
+			return UniqueIdentifierParser.Parse(Receive());
+		}
+		
+		public List<string> ListUIDs()
+		{
+
+			
+			return null;
 		}
 	}
 }

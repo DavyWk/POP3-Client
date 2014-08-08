@@ -48,10 +48,12 @@ namespace POP3_Client
 			Logger.Inbox("{0} messages, {1} bytes total.", 
 			             stats.Key, stats.Value);
 			
-			Core.POP.CommandParser.ListParser.Display(c.ListMessages());
+			Core.POP.CommandParsers.ListParser.Display(c.ListMessages());
 
-//			foreach(var s in c.Top(stats.Key, 2))
-//				Logger.Inbox(s);
+			for(int i = 1; i <= stats.Key; i++)
+			{
+				Console.WriteLine("{0} : {1}", i, c.GetUId(i));
+			}
 
 			
 			Logger.Command(c.Quit());
