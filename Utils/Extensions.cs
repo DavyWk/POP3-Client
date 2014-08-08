@@ -36,15 +36,15 @@ namespace Utils
 		/// </summary>
 		/// <returns>The returned string does not include begin and end</returns>
 		public static string SubstringEx(this string s,char begin, char end,int startIndex)
-		{
-			
-			int bIndex = s.IndexOf(begin,startIndex) + 1; // +1: doesn't include the begin character
-			int eIndex = s.IndexOf(end,bIndex);
+		{	
+			int bIndex = s.IndexOf(begin, startIndex) + 1; 
+			// +1: doesn't include the begin character
+			int eIndex = s.IndexOf(end, bIndex);
 			
 			if((bIndex == -1) || (eIndex == -1))
 				return string.Empty;
 			
-			return s.Substring(bIndex,eIndex - bIndex);
+			return s.Substring(bIndex, eIndex - bIndex);
 		}
 		
 		/// <summary>
@@ -53,7 +53,7 @@ namespace Utils
 		/// <returns>The returned string does not include begin and end</returns>
 		public static string SubstringEx(this string s,char begin, char end)
 		{
-			return SubstringEx(s,begin,end,0);
+			return SubstringEx(s, begin, end, 0);
 		}
 		
 		/// <summary>
@@ -62,7 +62,8 @@ namespace Utils
 		public static bool StartsWithEx(this string s,string prefix)
 		{
 			s = s.Trim();
-			return s.StartsWith(prefix,StringComparison.InvariantCultureIgnoreCase);
+			return s.StartsWith(prefix,
+			                    StringComparison.InvariantCultureIgnoreCase);
 		}
 		
 		public static void ThrowIfNullOrEmpty(this string s, string argName)
@@ -70,7 +71,8 @@ namespace Utils
 			if(s == null)
 				throw new ArgumentNullException(argName);
 			if(s == string.Empty)
-				throw new ArgumentException("Argument cannot be an empty string","argName");
+				throw new ArgumentException(
+					"Argument cannot be an empty string", argName);
 		}
 		
 		public static bool Contains(this char[] array, char[] chars)
@@ -80,6 +82,7 @@ namespace Utils
 				if(array.Contains(c))
 					return true;
 			}
+			
 			return false;
 		}
 		
@@ -104,8 +107,8 @@ namespace Utils
 			{
 				if(invalidChars.Contains(c))
 				{
-					index = s.IndexOf(c,index);
-					s = s.Remove(index,1);
+					index = s.IndexOf(c, index);
+					s = s.Remove(index, 1);
 				}
 			}
 			
