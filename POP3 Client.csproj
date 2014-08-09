@@ -59,6 +59,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Core\Command\CommandLine.cs" />
+    <Compile Include="Core\Command\Open.cs" />
+    <Compile Include="Core\Command\Quit.cs" />
     <Compile Include="Core\Mail\MailDecoder.cs" />
     <Compile Include="Core\Mail\MailParser.cs" />
     <Compile Include="Core\Mail\MailParsingUtils.cs" />
@@ -68,7 +71,7 @@
     <Compile Include="Core\Network\POP3Client.cs" />
     <Compile Include="Core\POP\CommandParsers\StatParser.cs" />
     <Compile Include="Core\POP\CommandParsers\UniqueIdentifierParser.cs" />
-    <Compile Include="Core\POP\Commands.cs" />
+    <Compile Include="Core\POP\POPCommands.cs" />
     <Compile Include="Core\POP\Constants.cs" />
     <Compile Include="Core\POP\POPState.cs" />
     <Compile Include="Core\POP\Protocol.cs" />
@@ -81,6 +84,7 @@
   <ItemGroup>
     <Folder Include="Core\Mail" />
     <Folder Include="Core\Network" />
+    <Folder Include="Core\Command" />
     <Folder Include="Core\POP" />
   </ItemGroup>
   <ItemGroup>

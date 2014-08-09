@@ -2,6 +2,7 @@
 {
 	public enum POPState
 	{
+		NONE,
 		Authorization,
 		Transaction,
 		Update

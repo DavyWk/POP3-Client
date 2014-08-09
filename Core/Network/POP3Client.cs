@@ -62,8 +62,8 @@ namespace Core.Network
 		{
 			get
 			{
-				if(client != null)
-					return client.Connected;
+				if(client.Client != null)
+					return client.Client.Connected;
 				else
 					throw new ObjectDisposedException("client");
 			}
@@ -86,8 +86,18 @@ namespace Core.Network
 			_port = port;
 			client = new TcpClient();
 			_ssl = ssl;
-			
-			var ips = Dns.GetHostAddresses(Host);
+			State =  POPState.NONE;
+
+			IPAddress[] ips;
+			try
+			{
+				ips = Dns.GetHostAddresses(Host);
+			}
+			catch
+			{
+				ips = new IPAddress[0];
+				_ip = new IPAddress(0);
+			}
 			for(int i = 0; i < ips.Length; i++)
 			{
 				if(ips[i].AddressFamily == AddressFamily.InterNetwork)
@@ -269,40 +279,45 @@ namespace Core.Network
 			}
 			catch(SocketException ex)
 			{
-				Logger.Exception(ex);
-				InternalExit();
+				InternalClose();
+				
+				return ex.Message;
 			}
 			
-			if(client.Connected)
+			stream = client.GetStream();
+
+			State = POPState.Authorization;
+			if(SSL)
 			{
-				stream = client.GetStream();
-				Utils.Logger.Network("Connected to {0}({1}) on port {2}",
-				                     IP, Host, Port);
-				
-				if(SSL)
+				State = POPState.NONE;
+				var secureStream = new SslStream(stream);
+				try
 				{
-					var secureStream = new SslStream(stream);
 					secureStream.AuthenticateAsClient(Host);
 					
 					stream = secureStream;
-					
-					if(secureStream.IsAuthenticated)
-						Utils.Logger.Network("SSL activated");
-					else
-						return string.Empty;
 				}
-				State = POPState.Authorization;
+				catch(IOException ex)
+				{
+					return ex.Message;
+				}
 				
-				return Receive(); // Server ready
+				if(!secureStream.IsAuthenticated)
+					return "Error while activating SSL";
+				
+				State = POPState.Authorization;
 			}
-			else
-				return string.Empty;
+			string response = Receive();
+			if(string.IsNullOrEmpty(response))
+				State = POPState.NONE;
+			
+			return response; 
 		}
 		
 		
 		private string CheckConnection(bool dummy = false)
 		{
-			SendCommand(Commands.NoOperation);
+			SendCommand(POPCommands.NoOperation);
 			
 			return Receive();
 		}
@@ -332,7 +347,7 @@ namespace Core.Network
 			if(string.IsNullOrEmpty(password))
 				password.ThrowIfNullOrEmpty("password");
 			
-			SendCommand("{0} {1}", Commands.USER, emailAddress);
+			SendCommand("{0} {1}", POPCommands.USER, emailAddress);
 			
 			string response = Receive();
 			if(!Protocol.CheckHeader(response))
@@ -341,7 +356,7 @@ namespace Core.Network
 				return response;
 			}
 			
-			SendCommand("{0} {1}", Commands.PASS, password);
+			SendCommand("{0} {1}", POPCommands.PASS, password);
 			
 			response = Receive();
 
@@ -365,7 +380,7 @@ namespace Core.Network
 			if(State == POPState.Transaction)
 				State = POPState.Update;
 			
-			SendCommand(Commands.QUIT);
+			SendCommand(POPCommands.QUIT);
 
 			return Receive();
 		}
@@ -382,7 +397,7 @@ namespace Core.Network
 				throw new InvalidOperationException(
 					string.Format(invalidOperation, State.ToString()));
 			
-			SendCommand(Commands.LISTMSG);
+			SendCommand(POPCommands.LISTMSG);
 			Receive();
 			List<string> received = ReceiveMultiLine();
 			
@@ -397,7 +412,7 @@ namespace Core.Network
 				throw new InvalidOperationException(
 					string.Format(invalidOperation, State.ToString()));
 			
-			SendCommand("{0} {1}", Commands.LISTMSG, msgNumber);
+			SendCommand("{0} {1}", POPCommands.LISTMSG, msgNumber);
 			string response = Receive();
 			if(!Protocol.CheckHeader(response))
 				return -1;
@@ -438,7 +453,7 @@ namespace Core.Network
 				throw new InvalidOperationException(
 					string.Format(invalidOperation, State.ToString()));
 			
-			SendCommand("{0} {1}", Commands.RETRIEVE, messageID);
+			SendCommand("{0} {1}", POPCommands.RETRIEVE, messageID);
 			
 			POPMessage ret = null;
 			
@@ -460,7 +475,7 @@ namespace Core.Network
 				throw new InvalidOperationException(
 					string.Format(invalidOperation, State.ToString()));
 			
-			SendCommand(Commands.STAT);
+			SendCommand(POPCommands.STAT);
 			
 			return StatParser.Parse(Receive());
 		}
@@ -474,7 +489,7 @@ namespace Core.Network
 				throw new InvalidOperationException(
 					string.Format(invalidOperation, State.ToString()));
 			
-			SendCommand("{0} {1}", Commands.DELETE, messageID);
+			SendCommand("{0} {1}", POPCommands.DELETE, messageID);
 			
 			return Receive();
 		}
@@ -493,7 +508,7 @@ namespace Core.Network
 				throw new InvalidOperationException(
 					string.Format(invalidOperation, State.ToString()));
 			
-			SendCommand(Commands.RESET);
+			SendCommand(POPCommands.RESET);
 			// Just '+OK' so there is no need to log it
 			Receive();
 		}
@@ -504,7 +519,7 @@ namespace Core.Network
 				throw new InvalidOperationException(
 					string.Format(invalidOperation, State.ToString()));
 			
-			SendCommand("{0} {1} {2}", Commands.TOP, messageID, nLines);
+			SendCommand("{0} {1} {2}", POPCommands.TOP, messageID, nLines);
 			
 			var ret = ReceiveMultiLine();
 			// Removes +OK/-ERR at the beginning.
@@ -522,7 +537,7 @@ namespace Core.Network
 				throw new InvalidOperationException(
 					string.Format(invalidOperation, State.ToString()));
 
-			SendCommand("{0} {1}", Commands.UIDL, messageID);
+			SendCommand("{0} {1}", POPCommands.UIDL, messageID);
 			
 			return UniqueIdentifierParser.Parse(Receive());
 		}
@@ -538,7 +553,7 @@ namespace Core.Network
 				throw new InvalidOperationException(
 					string.Format(invalidOperation, State.ToString()));
 			
-			SendCommand(Commands.UIDL);
+			SendCommand(POPCommands.UIDL);
 			
 			var list = ReceiveMultiLine();
 			var dic = new Dictionary<int, string>();

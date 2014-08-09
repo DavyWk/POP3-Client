@@ -1,6 +1,6 @@
 ﻿namespace Core.POP
 {
-	public static class Commands
+	public static class POPCommands
 	{
 		//TODO: Mayve implement format strings instead of raw commands.
 		

@@ -7,6 +7,7 @@ using Core.Mail;
 using Core.Helpers;
 using Core.Network;
 using Core.POP;
+using Core.Command;
 
 namespace POP3_Client
 {
@@ -16,7 +17,8 @@ namespace POP3_Client
 
 		static int Main(string[] args)
 		{
-			const string host = "pop-mail.outlook.com";
+			const string host = "pop.gmail.com";
+			//pop-mail.outlook.com
 			const int port = 995;
 			
 			string logFile = Path.Combine(
@@ -26,39 +28,33 @@ namespace POP3_Client
 			Logger.Bind(logFile);
 			Console.Title = "POP3 Client";
 			
-			var c = new POP3Client(host, port, true);
+			POP3Client c = null;
 			
-			Logger.Network(Protocol.RemoveHeader(c.Connect()));
-			
-			string address;
-			System.Security.SecureString password;
-			Console.Write("Enter your address email: ");
-			address = Console.ReadLine();
-			Console.Write("Enter your passowrd: ");
-			password = HelperMethods.ReadPassword();
-			
-			Logger.Command(c.Login(address, password.ToAsciiString()));
-			if(!c.LoggedIn)
+			string cmd;
+			while((cmd = Console.ReadLine()) != "x")
 			{
-				Console.ReadLine();
-				Environment.Exit(1);
+				var cmdArgs = cmd.Split(' ');
+				if(CheckForCommand(cmdArgs, "open"))
+					Open.Execute(ref c, cmd);
+				else if(CheckForCommand(cmdArgs, "quit"))
+					Quit.Execute(ref c);	
+				else
+					Logger.Error("Unknown command{0}",
+					             cmdArgs[0] != string.Empty ?
+					             string.Format(" {0}", cmdArgs[0]) : ".");
 			}
-	
-			var stats = c.GetStats();
-			Logger.Inbox("{0} messages, {1} bytes total.", 
-			             stats.Key, stats.Value);
 			
-			Core.POP.CommandParsers.ListParser.Display(c.ListMessages());
-
-			foreach(var kv in c.ListUIDs())
-				Logger.Inbox(true, "{0} : {1}", kv.Key, kv.Value);
-
-			
-			Logger.Command(c.Quit());
-			
-			c.Close();
+			Logger.Info("POP3Client developed by Davy.W, thanks for using.");
 			Console.ReadLine();
+
 			return 0;
+		}
+		
+		private static bool CheckForCommand(string[] args, string cmd)
+		{
+			string cmdName = args[0].ToLower();
+			
+			return (cmdName == cmd);
 		}
 		
 	}

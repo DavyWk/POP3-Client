@@ -1,4 +1,6 @@
-﻿namespace Core.POP
+﻿using System.Text;
+
+namespace Core.POP
 {
 	public static class Protocol
 	{
@@ -24,6 +26,17 @@
 				s = s.Replace("-ERR ", string.Empty);
 			
 			return s;
+		}
+		
+		public static string AddHeader(bool flag, string s)
+		{
+			var sb = new StringBuilder(s);
+			var header =  flag ? "+OK" : "-ERR";
+			
+			sb.Insert(0, " ", 1);
+			sb.Insert(0, header, 1);
+			
+			return sb.ToString();
 		}
 	}
 }

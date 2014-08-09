@@ -114,5 +114,14 @@ namespace Utils
 			
 			return s;
 		}
+		
+		public static bool Contains(this string[] array, string search)
+		{
+			foreach(var s in array)
+				if(s == search)
+					return true;
+			
+			return false;
+		}
 	}
 }
