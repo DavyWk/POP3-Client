@@ -50,10 +50,8 @@ namespace POP3_Client
 			
 			Core.POP.CommandParsers.ListParser.Display(c.ListMessages());
 
-			for(int i = 1; i <= stats.Key; i++)
-			{
-				Console.WriteLine("{0} : {1}", i, c.GetUId(i));
-			}
+			foreach(var kv in c.ListUIDs())
+				Logger.Inbox(true, "{0} : {1}", kv.Key, kv.Value);
 
 			
 			Logger.Command(c.Quit());

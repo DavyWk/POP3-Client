@@ -3,6 +3,7 @@
 	public static class Commands
 	{
 		//TODO: Mayve implement format strings instead of raw commands.
+		
 		#region Authorization
 		
 		/// <summary>Sends user's email address for authentification.</summary>

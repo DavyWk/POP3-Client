@@ -518,11 +518,32 @@ namespace Core.Network
 			return UniqueIdentifierParser.Parse(Receive());
 		}
 		
-		public List<string> ListUIDs()
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <returns>A dictionary where the key is the msgNumber and
+		/// the value is the message's UID.</returns>
+		public Dictionary<int, string> ListUIDs()
 		{
-
+			if(State != POPState.Transaction)
+				throw new InvalidOperationException(
+					string.Format(invalidOperation, State.ToString()));
 			
-			return null;
+			SendCommand(Commands.UIDL);
+			
+			var list = ReceiveMultiLine();
+			var dic = new Dictionary<int, string>();
+			
+			if(!Protocol.CheckHeader(list[0]))
+			{
+				dic.Add(-1, list[0]);
+				return dic;
+			}
+			
+			list.RemoveAt(0);
+			dic = UniqueIdentifierParser.Parse(list);
+					
+			return dic;
 		}
 	}
 }
