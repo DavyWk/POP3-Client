@@ -86,7 +86,16 @@ namespace Core.Network
 			_port = port;
 			client = new TcpClient();
 			_ssl = ssl;
-			_ip = Dns.GetHostAddresses(Host)[0];
+			
+			var ips = Dns.GetHostAddresses(Host);
+			for(int i = 0; i < ips.Length; i++)
+			{
+				if(ips[i].AddressFamily == AddressFamily.InterNetwork)
+				{
+					_ip = ips[i];
+					break;
+				}
+			}
 		}
 		
 		#region Implementing IDisposable
@@ -542,7 +551,7 @@ namespace Core.Network
 			
 			list.RemoveAt(0);
 			dic = UniqueIdentifierParser.Parse(list);
-					
+			
 			return dic;
 		}
 	}
