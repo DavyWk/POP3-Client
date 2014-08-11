@@ -38,6 +38,8 @@ namespace POP3_Client
 					Open.Execute(ref c, cmd);
 				else if(CheckForCommand(cmdArgs, "quit"))
 					Quit.Execute(ref c);	
+				else if(CheckForCommand(cmdArgs, "login"))
+					Login.Execute(ref c, cmdArgs);
 				else
 					Logger.Error("Unknown command{0}",
 					             cmdArgs[0] != string.Empty ?

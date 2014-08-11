@@ -71,10 +71,7 @@ namespace Core.Network
 		
 		public bool LoggedIn
 		{
-			get
-			{
-				return CheckConnection();
-			}
+			get; private set;
 		}
 		
 		public POPState State { get; private set; }
@@ -84,9 +81,16 @@ namespace Core.Network
 		{
 			_host = host;
 			_port = port;
-			client = new TcpClient();
 			_ssl = ssl;
+			client = new TcpClient();
 			State =  POPState.NONE;
+			
+			if(_port < 1)
+			{
+				// Port 995 is the default TLS/SSL POP3 port.
+				_port = 995;
+				_ssl = true;
+			}
 
 			IPAddress[] ips;
 			try
@@ -276,6 +280,8 @@ namespace Core.Network
 			try
 			{
 				client.Connect(new IPEndPoint(IP, Port));
+				client.ReceiveTimeout  = 10 * 1000;
+				client.SendTimeout = 10 * 1000;
 			}
 			catch(SocketException ex)
 			{
@@ -352,6 +358,7 @@ namespace Core.Network
 			string response = Receive();
 			if(!Protocol.CheckHeader(response))
 			{ // invalid login
+				LoggedIn = false;
 				Quit();
 				return response;
 			}
@@ -367,6 +374,7 @@ namespace Core.Network
 					return check;
 				
 				State = POPState.Transaction;
+				LoggedIn = true;
 			}
 
 			return response;
@@ -381,7 +389,7 @@ namespace Core.Network
 				State = POPState.Update;
 			
 			SendCommand(POPCommands.QUIT);
-
+			LoggedIn = false;
 			return Receive();
 		}
 		

@@ -8,12 +8,12 @@ namespace Core.Command
 {
 	public static class Open
 	{
-		private const string example = "Usage: open host port";
+		private const string example = "Usage: open host port\nOptions:\n-s : SSL";
 		
 		public static bool Execute(ref POP3Client c, string cmd)
 		{
 			string host;
-			int port = 995;
+			int port = 0;
 			bool ssl = false;
 			
 			if(c != null)
@@ -29,20 +29,12 @@ namespace Core.Command
 			}
 			
 			var args = cmd.Split(' ');
-			if(args.Length < 2)
-			{
-				Logger.Error(example);
-				Logger.Error("Not enough arguments");
-				return false;
-			}
 			
 			
 			host = args[1];
 			if(args.Length > 2)
-			{
-				if(!int.TryParse(args[2], out port))
-					port = 995;
-			}
+				int.TryParse(args[2], out port);
+			
 			
 			if(args.Contains("-s") || args.Contains("-S"))
 				ssl = true;
@@ -54,18 +46,15 @@ namespace Core.Command
 				Logger.Error("host cannot be an empty string");
 				return false;
 			}
-			if(port < 1)
-			{
-				Logger.Error(example);
-				Logger.Error("Port number cannot be negative");
-				return false;
-			}
 			
 			c = new POP3Client(host, port, ssl);
 			string ret = c.Connect();
 			
 			if(Protocol.CheckHeader(ret))
 			{
+				if(port == 0)
+					port = 995;
+				
 				Logger.Network("Connected to {0} on port {1}", host, port);
 				Logger.Network(Protocol.RemoveHeader(ret));
 			}

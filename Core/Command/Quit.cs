@@ -1,4 +1,5 @@
 ﻿using Core.Network;
+using Core.POP;
 using Utils;
 
 namespace Core.Command
@@ -9,7 +10,8 @@ namespace Core.Command
 		{
 			if(c != null)
 			{
-				if(c.State == POP.POPState.Authorization)
+				if((c.State == POPState.Authorization) ||
+				   (c.State == POPState.Transaction))
 				{
 					Logger.Command(c.Quit());
 					c.Dispose();
