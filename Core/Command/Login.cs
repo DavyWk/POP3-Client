@@ -10,7 +10,7 @@ namespace Core.Command
 		
 		public static void Execute(ref POP3Client c, string[] args)
 		{
-			if(c.State == POPState.NONE)
+			if(c == null)
 			{
 				Logger.Error("Not connected to a server.");
 				Logger.Error("Use the OPEN command to connect.");

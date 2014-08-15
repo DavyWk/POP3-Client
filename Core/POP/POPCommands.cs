@@ -2,7 +2,6 @@
 {
 	public static class POPCommands
 	{
-		//TODO: Mayve implement format strings instead of raw commands.
 		
 		#region Authorization
 		

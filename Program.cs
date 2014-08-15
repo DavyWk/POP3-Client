@@ -14,12 +14,14 @@ namespace POP3_Client
 	// POP3 protocol : http://www.faqs.org/rfcs/rfc1939.html
 	class Program
 	{
-
+		
 		static int Main(string[] args)
 		{
 			const string host = "pop.gmail.com";
 			//pop-mail.outlook.com
 			const int port = 995;
+			
+			string[] exitCommands = { "x", "exit" };
 			
 			string logFile = Path.Combine(
 				Environment.GetFolderPath(Environment.SpecialFolder.Desktop),
@@ -31,7 +33,7 @@ namespace POP3_Client
 			POP3Client c = null;
 			
 			string cmd;
-			while((cmd = Console.ReadLine()) != "x")
+			while(!CheckExit((cmd = Console.ReadLine()), exitCommands))
 			{
 				var cmdArgs = cmd.Split(' ');
 				if(CheckForCommand(cmdArgs, "open"))
@@ -40,6 +42,8 @@ namespace POP3_Client
 					Quit.Execute(ref c);	
 				else if(CheckForCommand(cmdArgs, "login"))
 					Login.Execute(ref c, cmdArgs);
+				else if(CheckForCommand(cmdArgs, "stat"))
+					Stat.Execute(ref c);
 				else
 					Logger.Error("Unknown command{0}",
 					             cmdArgs[0] != string.Empty ?
@@ -57,6 +61,16 @@ namespace POP3_Client
 			string cmdName = args[0].ToLower();
 			
 			return (cmdName == cmd);
+		}
+		
+		private static bool CheckExit(string cmd, string[] exitCommands)
+		{
+			cmd = cmd.Trim();
+			foreach(var s in exitCommands)
+				if(cmd == s)
+					return true;
+			
+			return false;
 		}
 		
 	}
