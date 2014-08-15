@@ -10,6 +10,7 @@ namespace Core.Command
 	{
 		private const string example = "Usage: open host port\nOptions:\n-s : SSL";
 		
+		//TODO: Rewrite this using Execute(ref POP3Client c, string[] cmd)
 		public static bool Execute(ref POP3Client c, string cmd)
 		{
 			string host;

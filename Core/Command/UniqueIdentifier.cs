@@ -1,14 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 using Core.Network;
 using Utils;
 
 namespace Core.Command
 {
-	public static class List
+	public static class UniqueIdentifier
 	{
-		private static string example = "Usage: list msgID\nOptions:\n -a Lists all messages";
+		private static string example = "Usage: uid msgID\nOptions:\n -a : Lists all UIDS listed on the server";
 		
 		public static void Execute(ref POP3Client c, string[] args)
 		{
@@ -30,7 +29,6 @@ namespace Core.Command
 				return;
 			}
 			
-			
 			bool all = args.Contains("-a") || args.Contains("-A");
 			int msgID = -1;
 			
@@ -38,32 +36,36 @@ namespace Core.Command
 			
 			if(all)
 			{
-				var dic = c.ListMessages();
-				List.Display(dic);
+				var dic = c.GetUID();
+				UniqueIdentifier.Display(dic);
 			}
 			else
 			{
 				if(msgID == -1)
 				{
-					Logger.Error("Invalid argument : {0}", args[1]);
+					Logger.Error("Invalid argument: {0}", args[1]);
 					return;
 				}
 				
-				var kv = c.ListMessage(msgID);
-				List.Display(kv);
+				var s = c.GetUID(msgID);
+				var kv = new KeyValuePair<int, string>(msgID, s);
+				UniqueIdentifier.Display(kv);
 			}
+			
 		}
 		
-		private static void Display(Dictionary<int, int> list)
+		private static void Display(Dictionary<int, string> uid)
 		{
-			foreach(var kv in list)
+			foreach(var kv in uid)
 				Display(kv);
 		}
 		
-		private static void Display(KeyValuePair<int, int> list)
+		private static void Display(KeyValuePair<int, string> uid)
 		{
-			Logger.Inbox("{0} - {1} bytes", list.Key, list.Value);
-			return;
+			if(uid.Key == -1)
+				Logger.Error(uid.Value);
+			else
+				Logger.Inbox("{0} : {1}", uid.Key, uid.Value);
 		}
 	}
 }

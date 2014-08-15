@@ -65,6 +65,7 @@
     <Compile Include="Core\Command\Open.cs" />
     <Compile Include="Core\Command\Quit.cs" />
     <Compile Include="Core\Command\Stat.cs" />
+    <Compile Include="Core\Command\UniqueIdentifier.cs" />
     <Compile Include="Core\Mail\MailDecoder.cs" />
     <Compile Include="Core\Mail\MailParser.cs" />
     <Compile Include="Core\Mail\MailParsingUtils.cs" />

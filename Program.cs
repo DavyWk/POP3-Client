@@ -46,6 +46,8 @@ namespace POP3_Client
 					Stat.Execute(ref c);
 				else if(CheckForCommand(cmdArgs, "list"))
 					List.Execute(ref c, cmdArgs);
+				else if(CheckForCommand(cmdArgs, "uid"))
+					UniqueIdentifier.Execute(ref c, cmdArgs);
 				else
 					Logger.Error("Unknown command{0}",
 					             cmdArgs[0] != string.Empty ?

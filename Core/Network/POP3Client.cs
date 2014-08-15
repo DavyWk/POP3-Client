@@ -562,7 +562,7 @@ namespace Core.Network
 			return ret;
 		}
 		
-		public string GetUId(int messageID)
+		public string GetUID(int messageID)
 		{
 			if(State != POPState.Transaction)
 				throw new InvalidOperationException(
@@ -570,7 +570,15 @@ namespace Core.Network
 
 			SendCommand("{0} {1}", POPCommands.UIDL, messageID);
 			
-			return UniqueIdentifierParser.Parse(Receive());
+			string received = Receive();
+			
+			if(!Protocol.CheckHeader(received))
+			{
+				received = Protocol.RemoveHeader(received);
+				return received.Capitalize();
+			}
+			
+			return UniqueIdentifierParser.Parse(received);
 		}
 		
 		/// <summary>
@@ -578,7 +586,7 @@ namespace Core.Network
 		/// </summary>
 		/// <returns>A dictionary where the key is the msgNumber and
 		/// the value is the message's UID.</returns>
-		public Dictionary<int, string> ListUIDs()
+		public Dictionary<int, string> GetUID()
 		{
 			if(State != POPState.Transaction)
 				throw new InvalidOperationException(
