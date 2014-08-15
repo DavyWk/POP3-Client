@@ -60,6 +60,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Core\Command\CommandLine.cs" />
+    <Compile Include="Core\Command\List.cs" />
     <Compile Include="Core\Command\Login.cs" />
     <Compile Include="Core\Command\Open.cs" />
     <Compile Include="Core\Command\Quit.cs" />

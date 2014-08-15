@@ -317,7 +317,7 @@ namespace Core.Network
 			if(string.IsNullOrEmpty(response))
 				State = POPState.NONE;
 			
-			return response; 
+			return response;
 		}
 		
 		
@@ -405,11 +405,34 @@ namespace Core.Network
 				throw new InvalidOperationException(
 					string.Format(invalidOperation, State.ToString()));
 			
-			SendCommand(POPCommands.LISTMSG);
+			SendCommand(POPCommands.LISTALL);
 			Receive();
 			List<string> received = ReceiveMultiLine();
 			
 			return ListParser.Parse(received);
+		}
+		
+		public KeyValuePair<int, int> ListMessage(int msgID)
+		{
+			if(State != POPState.Transaction)
+				throw new InvalidOperationException(
+					string.Format(invalidOperation, State.ToString()));
+			
+			SendCommand("{0} {1}", POPCommands.LISTMSG, msgID);
+			string received = Receive();
+			if(!Protocol.CheckHeader(received))
+				return new KeyValuePair<int, int>(-1, -1);
+			
+			received = Protocol.RemoveHeader(received);
+			var elements = received.Split(' ');
+			int id = -1;
+			int size = -1;
+			
+			int.TryParse(elements[0], out id);
+			int.TryParse(elements[1], out size);
+			var kv = new KeyValuePair<int, int>(id, size);
+			
+			return kv;
 		}
 		
 		/// <returns>The size of the message or

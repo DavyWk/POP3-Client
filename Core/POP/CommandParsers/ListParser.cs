@@ -9,8 +9,8 @@ namespace Core.POP.CommandParsers
     {
         public static Dictionary<int, int> Parse(List<string> messageList)
         {
-            Dictionary<int, int> dic = new Dictionary<int, int>();
-            foreach(string s in messageList)
+            var dic = new Dictionary<int, int>();
+            foreach(var s in messageList)
             {
                 // A single message is like this: "ID SizeInBytes".
                 string[] elements = s.Split(' ');
@@ -26,7 +26,7 @@ namespace Core.POP.CommandParsers
 
         public static void Display(Dictionary<int, int> messages)
         {
-            foreach(KeyValuePair<int, int> kv in messages)
+            foreach(var kv in messages)
             {
                 Logger.Inbox("{0} - {1} bytes", kv.Key, kv.Value);
             }

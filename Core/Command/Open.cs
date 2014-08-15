@@ -52,10 +52,10 @@ namespace Core.Command
 			
 			if(Protocol.CheckHeader(ret))
 			{
-				if(port == 0)
-					port = 995;
 				
-				Logger.Network("Connected to {0} on port {1}", host, port);
+				Logger.Network("Connected to {0} on port {1}", c.Host, c.Port);
+				if(c.SSL)
+					Logger.Network("SSL connection activated");
 				Logger.Network(Protocol.RemoveHeader(ret));
 			}
 			else
