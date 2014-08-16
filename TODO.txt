@@ -1,2 +1,1 @@
--Add commandline
 -Support MIME correctly (attachments and stuff)

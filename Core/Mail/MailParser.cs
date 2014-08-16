@@ -9,7 +9,6 @@ using Core.Mail;
 namespace Core.Mail
 {
 	//TODO: Support MIME format.
-	//TODO: Handle Content-Transfer-Encoding.
 	
 	public class MailParser
 	{
@@ -22,6 +21,7 @@ namespace Core.Mail
 		{
 			lines = messageLines;
 			POPMessage m = new POPMessage();
+			m.Raw = lines;
 			
 			foreach(var l in lines)
 			{
@@ -43,7 +43,11 @@ namespace Core.Mail
 				else if(lowered.StartsWith("content-type:"))
 					m.CharSet = GetEncoding(trimmed);
 				else if(string.IsNullOrWhiteSpace(trimmed))
+				{
+					int currentLine = lines.IndexOf(l);
+					m.Header = lines.GetRange(0, currentLine);
 					break;
+				}
 			}
 						
 			// Some SMTP sever don't send all the fields.
@@ -401,6 +405,29 @@ namespace Core.Mail
 			var lBody = new List<string>();
 			var body = string.Empty;
 			int bodyStart = Int32.MaxValue;
+			
+			bool contentEncoded = false;
+			if(lines
+			   .IndexOf("Content-Transfer-Encoding: base64") != -1)
+				contentEncoded = true;
+			
+			if(contentEncoded)
+			{
+				bodyStart = lines.IndexOf(string.Empty) + 1;
+				lBody = lines.GetRange(bodyStart, lines.Count - bodyStart);
+				string encodedBody = string.Join("", lBody.ToArray());
+				string decodedBody = charset.GetString(
+					Convert.FromBase64String(encodedBody));
+				string[] decodedArray = decodedBody.Split(
+					new string[] { "\r\n" }, 
+					StringSplitOptions.RemoveEmptyEntries);
+				
+				// Replaces the encoded ones with the decoded ones
+				lines.RemoveRange(bodyStart, lines.Count - bodyStart);
+				lines.AddRange(decodedArray);
+				lBody = new List<string>();
+				
+			}
 			
 			int htmlBegin = -1;
 			int htmlEnd = -1;

@@ -143,5 +143,34 @@ namespace Utils
 		{
 			dic.Add(kv.Key, kv.Value);
 		}
+		
+		public static string ToString(this List<string> list, string separator)
+		{
+			return string.Join(separator, list.ToArray());
+		}
+		
+		public static int IndexOf(this string[] array, string search,
+		                         bool ignoreCase = false)
+		{
+			if(ignoreCase)
+				search = search.ToLower();
+			for(int i = 0; i < array.Length; i++)
+			{
+				string temp = array[i];
+				if(ignoreCase)
+					temp.ToLower();
+				
+				if(temp == search)
+					return i;
+			}
+			
+			return -1;
+		}
+		
+		public static void Add(this List<string> list, string format, 
+		                       params object[] args)
+		{
+			list.Add(string.Format(format, args));
+		}
 	}
 }

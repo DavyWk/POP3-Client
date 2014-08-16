@@ -16,6 +16,8 @@ namespace Core.Mail
 		public Encoding CharSet { get; set; }
 		public DateTime ArrivalTime { get; set; }
 		public bool ContainsHTML { get; set; }
+		public List<string> Header { get; set; }
+		public List<string> Raw { get; set; }
 		
 		public POPMessage()
 		{

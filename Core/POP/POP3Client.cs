@@ -141,20 +141,19 @@ namespace Core.POP
 		private void InternalClose()
 		{
 			if(stream != null)
+			{
 				stream.Close();
+				stream = null;
+			}
 			
 			if(client != null)
+			{
 				client.Close();
+				client = null;
+			}
+			LoggedIn = false;
 		}
 		
-		/// <summary>
-		/// Only called on handled exceptions.
-		/// </summary>
-		private void InternalExit()
-		{
-			InternalClose();
-			LoggedIn =  false;
-		}
 		#endregion
 		
 		#region Internal Send/Receive functions
@@ -184,7 +183,7 @@ namespace Core.POP
 				if(ex is SocketException || ex is IOException)
 				{
 					Logger.Exception(ex);
-					InternalExit();
+					InternalClose();
 				}
 				else
 					throw;
@@ -235,7 +234,7 @@ namespace Core.POP
 				if(ex is SocketException || ex is IOException)
 				{
 					Logger.Exception(ex);
-					InternalExit();
+					InternalClose();
 				}
 				else
 					throw;
@@ -273,6 +272,8 @@ namespace Core.POP
 				client = new TcpClient();
 			}
 			
+			if(client == null)
+				client = new TcpClient();
 			try
 			{
 				client.Connect(new IPEndPoint(IP, Port));
