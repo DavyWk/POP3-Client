@@ -10,7 +10,7 @@ namespace CommandLine
 	{
 		private const string example = "Usage: open host port\nOptions:\n-s : SSL";
 		
-		//TODO: Rewrite this using Execute(ref POP3Client c, string[] cmd)
+		//TODO: Rewrite this using Execute(ref POP3Client c, string[] args)
 		public static void Execute(ref POP3Client c, string cmd)
 		{
 			string host;

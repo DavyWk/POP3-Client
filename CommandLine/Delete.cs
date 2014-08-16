@@ -26,10 +26,10 @@ namespace CommandLine
 				return;
 			}
 			
-			int msgID = -1;
+			int msgID;
 			int.TryParse(args[1], out msgID);
 			
-			if(msgID == -1)
+			if(msgID == 0)
 				Logger.Error("Invalid argument : {0}", args[1]);
 			else
 			{

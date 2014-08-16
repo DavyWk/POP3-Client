@@ -30,6 +30,7 @@
 		/// -s : Subject only <br/>
 		/// -d : Date only <br/>
 		/// -b : Body only <br/>
+		/// -f : Save to a file <br/>
 		/// </remarks>
 		public const string Retrieve = "retrieve";
 		

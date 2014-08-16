@@ -32,7 +32,7 @@ namespace CommandLine
 			
 			
 			bool all = args.Contains("-a") || args.Contains("-A");
-			int msgID = -1;
+			int msgID;
 			
 			int.TryParse(args[1], out msgID);
 			
@@ -43,7 +43,7 @@ namespace CommandLine
 			}
 			else
 			{
-				if(msgID == -1)
+				if(msgID == 0)
 				{
 					Logger.Error("Invalid argument : {0}", args[1]);
 					return;
