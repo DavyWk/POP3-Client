@@ -37,8 +37,8 @@ namespace Utils
 		/// </summary>
 		/// <returns>The returned string does not include begin and end</returns>
 		public static string SubstringEx(this string s,char begin, char end,int startIndex)
-		{	
-			int bIndex = s.IndexOf(begin, startIndex) + 1; 
+		{
+			int bIndex = s.IndexOf(begin, startIndex) + 1;
 			// +1: doesn't include the begin character
 			int eIndex = s.IndexOf(end, bIndex);
 			
@@ -116,11 +116,24 @@ namespace Utils
 			return s;
 		}
 		
-		public static bool Contains(this string[] array, string search)
+		public static bool Contains(this string[] array, string search,
+		                            bool ignoreCase = false)
 		{
+			string original = search;
 			foreach(var s in array)
+			{
+				string temp = s;
+				if(ignoreCase)
+				{
+					temp = temp.ToLower();
+					search = search.ToLower();
+				}
+				
 				if(s == search)
 					return true;
+				
+				search = original;
+			}
 			
 			return false;
 		}

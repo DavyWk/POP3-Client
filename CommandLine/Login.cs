@@ -19,8 +19,8 @@ namespace CommandLine
 			
 			if(args.Length != 3)
 			{
-				Logger.Error("Invalid arguments: {0}", string.Join(" ", args));
-				Logger.Error(example);
+				Logger.Error("Invalid arguments: {0}\n{1}", 
+				             string.Join(" ", args), example);
 				return;
 			}
 			
@@ -43,12 +43,12 @@ namespace CommandLine
 			
 			if(c.LoggedIn)
 			{
-				Logger.Success("Login successfull:");
+				Logger.Success("Login successfull");
 				Logger.Command(response);
 			}
 			else
 			{
-				Logger.Error("Login failed:");
+				Logger.Error("Login failed");
 				Logger.Command(response);
 			}
 		}

@@ -40,7 +40,7 @@ namespace POP3_Client
 					Quit.Execute(ref c);	
 				else if(CheckForCommand(cmdArgs, "login"))
 					Login.Execute(ref c, cmdArgs);
-				else if(CheckForCommand(cmdArgs, "stat"))
+				else if(CheckForCommand(cmdArgs, new string[] {"stat", "stats"}))
 					Stat.Execute(ref c);
 				else if(CheckForCommand(cmdArgs, "list"))
 					List.Execute(ref c, cmdArgs);
@@ -50,6 +50,8 @@ namespace POP3_Client
 					Delete.Execute(ref c, cmdArgs);
 				else if(CheckForCommand(cmdArgs, "reset"))
 					Reset.Execute(ref c);
+				else if(CheckForCommand(cmdArgs, new string[] { "retrieve", "retr" }))
+					Retrieve.Execute(ref c, cmdArgs);
 				else
 					Logger.Error("Unknown command{0}",
 					             cmdArgs[0] != string.Empty ?

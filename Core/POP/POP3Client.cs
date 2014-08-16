@@ -153,9 +153,7 @@ namespace Core.POP
 		private void InternalExit()
 		{
 			InternalClose();
-			Logger.Error("Exiting ...");
-			Console.ReadLine();
-			Environment.Exit(1);
+			LoggedIn =  false;
 		}
 		#endregion
 		
@@ -469,7 +467,7 @@ namespace Core.POP
 		/// If the message does not exist, returns null.
 		/// </summary>
 		/// <returns>The message stored with "messageID" on the server,
-		/// or a message with ID "-1" in case of error.</returns>
+		/// or null in case of error.</returns>
 		public POPMessage GetMessage(int messageID)
 		{
 			if(State != POPState.Transaction)
@@ -479,9 +477,15 @@ namespace Core.POP
 			SendCommand("{0} {1}", POPCommands.RETRIEVE, messageID);
 			
 			POPMessage ret = null;
-			
-			if(Protocol.CheckHeader(Receive()))
+			string response = Receive();
+			if(Protocol.CheckHeader(response))
 				ret = new MailParser(ReceiveMultiLine()).Message;
+			else
+			{
+				ret = new POPMessage();
+				ret.ID = Constants.INVALID;
+				ret.Body = Protocol.RemoveHeader(response);
+			}
 			
 			return ret;
 		}
