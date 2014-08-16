@@ -24,8 +24,11 @@ namespace CommandLine
 			
 			var kv = c.GetStats();
 			
-			Logger.Info("STATS: {0} messages, {1} bytes total",
-			            kv.Key, kv.Value);
+			if(kv.Key != -1)
+				Logger.Info("{0} messages, {1} bytes total",
+				            kv.Key, kv.Value);
+			else
+				Logger.Error("Error while retrieving stats");
 		}
 	}
 	

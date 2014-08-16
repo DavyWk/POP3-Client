@@ -56,7 +56,7 @@ namespace POP3_Client
 					             string.Format(" {0}", cmdArgs[0]) : ".");
 			}
 			
-			Logger.Info("POP3Client developed by Davy.W, thanks for using.");
+			Logger.Info("POP3Client developed by Davy.W cnetadev@outlook.com");
 			Console.ReadLine();
 
 			return 0;

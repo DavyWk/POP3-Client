@@ -89,7 +89,6 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Core\Mail" />
-    <Folder Include="Core\Network" />
     <Folder Include="CommandLine" />
     <Folder Include="Core\POP" />
   </ItemGroup>

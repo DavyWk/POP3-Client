@@ -9,7 +9,7 @@ namespace Core.POP.CommandParsers
 		public static KeyValuePair<int, int> Parse(string s)
 		{
 			if(!Protocol.CheckHeader(s))
-				return new KeyValuePair<int, int>(0, 0);
+				return new KeyValuePair<int, int>(-1, -1);
 			
 			s = Protocol.RemoveHeader(s);
 			string[] splitted = s.Split(' ');
