@@ -1,7 +1,7 @@
 ﻿using System;
 
 using Core.POP;
-using Core.Network;
+
 using Utils;
 
 namespace CommandLine

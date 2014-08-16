@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-using Core.Network;
+using Core.POP;
 using Utils;
 
 namespace CommandLine

@@ -8,11 +8,9 @@ using System.Collections.Generic;
 
 using Utils;
 using Core.Mail;
-using Core.Helpers;
-using Core.POP;
 using Core.POP.CommandParsers;
 
-namespace Core.Network
+namespace Core.POP
 {
 	public class POP3Client : IDisposable
 	{

@@ -2,6 +2,8 @@
 {
 	public static class Commands
 	{
+		//TODO: Document everything		
+
 		/// <summary>
 		/// Connects to server
 		/// </summary>

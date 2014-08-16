@@ -4,8 +4,6 @@ using System.Collections.Generic;
 
 using Utils;
 using Core.Mail;
-using Core.Helpers;
-using Core.Network;
 using Core.POP;
 using CommandLine;
 

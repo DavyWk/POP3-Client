@@ -74,17 +74,17 @@
     <Compile Include="Core\POP\CommandParsers\ListParser.cs" />
     <Compile Include="Core\Mail\POPMessage.cs" />
     <Compile Include="Core\Mail\Person.cs" />
-    <Compile Include="Core\Network\POP3Client.cs" />
     <Compile Include="Core\POP\CommandParsers\StatParser.cs" />
     <Compile Include="Core\POP\CommandParsers\UniqueIdentifierParser.cs" />
+    <Compile Include="Core\POP\POP3Client.cs" />
     <Compile Include="Core\POP\POPCommands.cs" />
     <Compile Include="Core\POP\Constants.cs" />
     <Compile Include="Core\POP\POPState.cs" />
     <Compile Include="Core\POP\Protocol.cs" />
-    <Compile Include="Core\Helpers\Helpers.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Utils\Extensions.cs" />
+    <Compile Include="Utils\Helpers.cs" />
     <Compile Include="Utils\Logger.cs" />
   </ItemGroup>
   <ItemGroup>

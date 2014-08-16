@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Security;
 
-namespace Core.Helpers
+namespace Utils
 {
     public static class HelperMethods
     {
