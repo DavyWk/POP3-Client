@@ -7,7 +7,7 @@ using Core.Mail;
 using Core.Helpers;
 using Core.Network;
 using Core.POP;
-using Core.Command;
+using CommandLine;
 
 namespace POP3_Client
 {
@@ -48,6 +48,10 @@ namespace POP3_Client
 					List.Execute(ref c, cmdArgs);
 				else if(CheckForCommand(cmdArgs, "uid"))
 					UniqueIdentifier.Execute(ref c, cmdArgs);
+				else if(CheckForCommand(cmdArgs, new string[] {"delete", "del"}))
+					Delete.Execute(ref c, cmdArgs);
+				else if(CheckForCommand(cmdArgs, "reset"))
+					Reset.Execute(ref c);
 				else
 					Logger.Error("Unknown command{0}",
 					             cmdArgs[0] != string.Empty ?
@@ -58,6 +62,16 @@ namespace POP3_Client
 			Console.ReadLine();
 
 			return 0;
+		}
+		
+		private static bool CheckForCommand(string[] args, string[] cmd)
+		{
+			foreach(var s in cmd)
+			{
+				if(CheckForCommand(args, s))
+					return true;
+			}
+			return false;
 		}
 		
 		private static bool CheckForCommand(string[] args, string cmd)

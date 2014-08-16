@@ -4,11 +4,11 @@ using System.Collections.Generic;
 using Core.Network;
 using Utils;
 
-namespace Core.Command
+namespace CommandLine
 {
 	public static class List
 	{
-		private static string example = "Usage: list msgID\nOptions:\n -a Lists all messages";
+		private const string example = "Usage: list msgID\nOptions:\n -a Lists all messages";
 		
 		public static void Execute(ref POP3Client c, string[] args)
 		{
@@ -17,7 +17,7 @@ namespace Core.Command
 				Logger.Error("Not connected, use the open command first");
 				return;
 			}
-			if(c.LoggedIn == false)
+			if(!c.LoggedIn)
 			{
 				Logger.Error("Not logged in, use the login command first");
 				return;
@@ -60,10 +60,15 @@ namespace Core.Command
 				Display(kv);
 		}
 		
-		private static void Display(KeyValuePair<int, int> list)
+		private static void Display(KeyValuePair<int, int> info)
 		{
-			Logger.Inbox("{0} - {1} bytes", list.Key, list.Value);
-			return;
+			if(info.Value != -1)
+				Logger.Inbox("{0} - {1} bytes", info.Key, info.Value);
+			else
+			{
+				int id = info.Key;
+				Logger.Inbox("{0} - Invalid message ID", id);
+			}
 		}
 	}
 }

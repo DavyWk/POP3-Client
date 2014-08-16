@@ -3,11 +3,11 @@
 using Core.Network;
 using Utils;
 
-namespace Core.Command
+namespace CommandLine
 {
 	public static class UniqueIdentifier
 	{
-		private static string example = "Usage: uid msgID\nOptions:\n -a : Lists all UIDS listed on the server";
+		private const string example = "Usage: uid msgID\nOptions:\n -a : Lists all UIDS listed on the server";
 		
 		public static void Execute(ref POP3Client c, string[] args)
 		{

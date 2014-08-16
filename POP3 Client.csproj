@@ -59,13 +59,15 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Core\Command\CommandLine.cs" />
-    <Compile Include="Core\Command\List.cs" />
-    <Compile Include="Core\Command\Login.cs" />
-    <Compile Include="Core\Command\Open.cs" />
-    <Compile Include="Core\Command\Quit.cs" />
-    <Compile Include="Core\Command\Stat.cs" />
-    <Compile Include="Core\Command\UniqueIdentifier.cs" />
+    <Compile Include="CommandLine\Commands.cs" />
+    <Compile Include="CommandLine\Delete.cs" />
+    <Compile Include="CommandLine\List.cs" />
+    <Compile Include="CommandLine\Login.cs" />
+    <Compile Include="CommandLine\Open.cs" />
+    <Compile Include="CommandLine\Quit.cs" />
+    <Compile Include="CommandLine\Reset.cs" />
+    <Compile Include="CommandLine\Stat.cs" />
+    <Compile Include="CommandLine\UniqueIdentifier.cs" />
     <Compile Include="Core\Mail\MailDecoder.cs" />
     <Compile Include="Core\Mail\MailParser.cs" />
     <Compile Include="Core\Mail\MailParsingUtils.cs" />
@@ -88,7 +90,7 @@
   <ItemGroup>
     <Folder Include="Core\Mail" />
     <Folder Include="Core\Network" />
-    <Folder Include="Core\Command" />
+    <Folder Include="CommandLine" />
     <Folder Include="Core\POP" />
   </ItemGroup>
   <ItemGroup>

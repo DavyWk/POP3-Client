@@ -21,9 +21,11 @@ namespace Core.POP
 			s = s.Trim();
 			
 			if(CheckHeader(s))
-				s = s.Replace("+OK ", string.Empty);
+				s = s.Replace("+OK", string.Empty);
 			else
-				s = s.Replace("-ERR ", string.Empty);
+				s = s.Replace("-ERR", string.Empty);
+			
+			s = s.TrimStart();
 			
 			return s;
 		}

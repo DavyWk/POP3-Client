@@ -421,16 +421,10 @@ namespace Core.Network
 			SendCommand("{0} {1}", POPCommands.LISTMSG, msgID);
 			string received = Receive();
 			if(!Protocol.CheckHeader(received))
-				return new KeyValuePair<int, int>(-1, -1);
+				return new KeyValuePair<int, int>(msgID, -1);
 			
 			received = Protocol.RemoveHeader(received);
-			var elements = received.Split(' ');
-			int id = -1;
-			int size = -1;
-			
-			int.TryParse(elements[0], out id);
-			int.TryParse(elements[1], out size);
-			var kv = new KeyValuePair<int, int>(id, size);
+			var kv = ListParser.Parse(received);
 			
 			return kv;
 		}
@@ -531,7 +525,7 @@ namespace Core.Network
 		}
 		
 		/// <summary>
-		/// Restores the message deleted during the current session.
+		/// Restores the messages deleted during the current session.
 		/// </summary>
 		public void Reset()
 		{

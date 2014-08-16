@@ -44,21 +44,21 @@ namespace Utils
 			if(file)
 			{
 				if(success)
-					LogFile(LogType.Success, s);
+					Success(true, s);
 				else
-					LogFile(LogType.Error, s);
+					Error(true, s);
 			}
 			else
 			{
 				if(success)
-					LogConsole(LogType.Success, s);
+					Success(s);
 				else
-					LogConsole(LogType.Error, s);
+					Error(s);
 			}
 		}
 		public static void Command(string format, params object[] args)
 		{
-			Command(false,format,args);
+			Command(false, format, args);
 		}
 
 		public static void Exception(Exception ex)

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Security;
+using System.Collections.Generic;
 using System.Runtime.InteropServices;
 
 namespace Utils
@@ -122,6 +123,12 @@ namespace Utils
 					return true;
 			
 			return false;
+		}
+		
+		public static void Add(this Dictionary<int, int> dic,
+		                       KeyValuePair<int, int> kv)
+		{
+			dic.Add(kv.Key, kv.Value);
 		}
 	}
 }

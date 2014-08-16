@@ -4,14 +4,14 @@ using Core.POP;
 using Core.Network;
 using Utils;
 
-namespace Core.Command
+namespace CommandLine
 {
 	public static class Open
 	{
 		private const string example = "Usage: open host port\nOptions:\n-s : SSL";
 		
 		//TODO: Rewrite this using Execute(ref POP3Client c, string[] cmd)
-		public static bool Execute(ref POP3Client c, string cmd)
+		public static void Execute(ref POP3Client c, string cmd)
 		{
 			string host;
 			int port = 0;
@@ -26,7 +26,7 @@ namespace Core.Command
 					Quit.Execute(ref c);
 				}
 				else
-					return false;
+					return;
 			}
 			
 			var args = cmd.Split(' ');
@@ -45,7 +45,7 @@ namespace Core.Command
 			{
 				Logger.Error(example);
 				Logger.Error("host cannot be an empty string");
-				return false;
+				return;
 			}
 			
 			c = new POP3Client(host, port, ssl);
@@ -66,9 +66,6 @@ namespace Core.Command
 				if(ret != string.Empty)
 					Logger.Network(ret);
 			}
-			
-			return Protocol.CheckHeader(ret);
-			// Not using c.Connected to avoid exceptions.
 		}
 	}
 }

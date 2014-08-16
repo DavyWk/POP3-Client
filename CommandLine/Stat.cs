@@ -4,7 +4,7 @@ using Core.Network;
 
 using Utils;
 
-namespace Core.Command
+namespace CommandLine
 {
 	public static class Stat
 	{

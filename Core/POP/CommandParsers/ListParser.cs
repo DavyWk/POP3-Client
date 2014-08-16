@@ -11,25 +11,23 @@ namespace Core.POP.CommandParsers
         {
             var dic = new Dictionary<int, int>();
             foreach(var s in messageList)
-            {
-                // A single message is like this: "ID SizeInBytes".
-                string[] elements = s.Split(' ');
-                int id, size = 0;
-
-                int.TryParse(elements[0], out id);
-                int.TryParse(elements[1], out size);
-
-                dic.Add(id, size);
-            }
+            	dic.Add(Parse(s));
+            
             return dic;
         }
-
-        public static void Display(Dictionary<int, int> messages)
+        
+        public static KeyValuePair<int, int> Parse(string s)
         {
-            foreach(var kv in messages)
-            {
-                Logger.Inbox("{0} - {1} bytes", kv.Key, kv.Value);
-            }
+        	// ID sizeInBytes
+        	
+        	string[] elements = s.Split(' ');
+        	int id = 0;
+        	int size = -1;
+        	
+        	int.TryParse(elements[0], out id);
+        	int.TryParse(elements[1], out size);
+        	
+        	return new KeyValuePair<int, int>(id, size);
         }
     }
 }

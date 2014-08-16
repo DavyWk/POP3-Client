@@ -1,12 +1,12 @@
-﻿namespace Core.Command
+﻿namespace CommandLine
 {
-	public static class CommandLine
+	public static class Commands
 	{
 		/// <summary>
-		/// 
+		/// Connects to server
 		/// </summary>
 		/// <example>open pop.host.com port</example>
-		/// <remarks>Port is 995 by default.<br/>
+		/// <remarks>Default is port = 995 and ssl = true<br/>
 		/// Options: <br/>
 		/// -s : SSL</remarks>
 		public const string Open = "open";
@@ -20,7 +20,7 @@
 		/// <summary>
 		/// 
 		/// </summary>
-		/// <example>get messageID</example>
+		/// <example>retrieve messageID</example>
 		/// <remarks>Options: <br/>
 		/// default: Formatted
 		/// -r : Raw (whole message) <br/>
@@ -29,15 +29,15 @@
 		/// -d : Date only <br/>
 		/// -b : Body only <br/>
 		/// </remarks>
-		public const string Get = "get";
+		public const string Retrieve = "retrieve";
 		
 		/// <summary>
-		/// 
+		/// Disconnects from the POP server.
 		/// </summary>
 		public const string Quit = "quit";
 		
 		/// <summary>
-		/// 
+		/// Gets the unique identifier of the message.
 		/// </summary>
 		/// <example>uid msgID</example>
 		public const string UID = "uid";

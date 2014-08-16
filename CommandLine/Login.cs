@@ -2,7 +2,7 @@
 using Core.POP;
 using Utils;
 
-namespace Core.Command
+namespace CommandLine
 {
 	public static class Login
 	{
