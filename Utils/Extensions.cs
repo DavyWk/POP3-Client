@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Text;
 using System.Security;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
@@ -8,6 +9,7 @@ namespace Utils
 {
 	public static class Extensions
 	{
+		#region String
 		public static string Capitalize(this string s)
 		{
 			string ret = s.Trim();
@@ -17,26 +19,13 @@ namespace Utils
 			ret = char.ToUpper(ret[0]) + ret.Substring(1);
 			return ret;
 		}
-
-		/// <summary>
-		/// Gets a System.String form a SecureString
-		/// </summary>
-		/// <returns>The original string</returns>
-		public static string ToAsciiString(this SecureString s)
-		{ // it doesnt't secure the string but its easier to handle password input in a SecureString
-			string ret;
-			IntPtr pointer = Marshal.SecureStringToBSTR(s);
-			ret = Marshal.PtrToStringBSTR(pointer);
-			Marshal.ZeroFreeBSTR(pointer);
-
-			return ret;
-		}
 		
 		/// <summary>
 		/// Gets the string between two characters.
 		/// </summary>
 		/// <returns>The returned string does not include begin and end</returns>
-		public static string SubstringEx(this string s,char begin, char end,int startIndex)
+		public static string SubstringEx(this string s, char begin, char end,
+		                                 int startIndex)
 		{
 			int bIndex = s.IndexOf(begin, startIndex) + 1;
 			// +1: doesn't include the begin character
@@ -76,6 +65,33 @@ namespace Utils
 					"Argument cannot be an empty string", argName);
 		}
 		
+		public static string CleanPath(this string s)
+		{
+			//TODO: StringBuilder
+			int index = 0;
+			char[] invalidChars = Path.GetInvalidFileNameChars();
+			char[] chars = s.ToCharArray();
+			var sb = new StringBuilder(s);
+			
+			foreach(char c in chars)
+			{
+				if(invalidChars.Contains(c))
+				{
+					index = sb.IndexOf(c, index);
+					sb = sb.Remove(index, 1);
+				}
+			}
+			
+			return s;
+		}
+		
+
+		
+		#endregion
+
+		
+		#region Char[]
+		
 		public static bool Contains(this char[] array, char[] chars)
 		{
 			foreach(var c in chars)
@@ -96,24 +112,6 @@ namespace Utils
 			}
 			
 			return false;
-		}
-		
-		public static string CleanPath(this string s)
-		{
-			int index = 0;
-			char[] invalidChars = Path.GetInvalidFileNameChars();
-			char[] chars = s.ToCharArray();
-			
-			foreach(char c in chars)
-			{
-				if(invalidChars.Contains(c))
-				{
-					index = s.IndexOf(c, index);
-					s = s.Remove(index, 1);
-				}
-			}
-			
-			return s;
 		}
 		
 		public static bool Contains(this string[] array, string search,
@@ -137,20 +135,43 @@ namespace Utils
 			
 			return false;
 		}
+		#endregion
 		
-		public static void Add(this Dictionary<int, int> dic,
-		                       KeyValuePair<int, int> kv)
-		{
-			dic.Add(kv.Key, kv.Value);
-		}
+		#region List<string>
 		
 		public static string ToString(this List<string> list, string separator)
 		{
 			return string.Join(separator, list.ToArray());
 		}
 		
+		public static void Add(this List<string> list, string format,
+		                       params object[] args)
+		{
+			list.Add(string.Format(format, args));
+		}
+		#endregion
+		
+		public static int IndexOf(this StringBuilder sb, char c,
+		                          int startIndex = 0)
+		{
+			for(int i = startIndex; i < sb.Length; i++)
+			{
+				if(sb[i] == c)
+					return i;
+			}
+			
+			return -1;
+		}
+
+		public static void Add(this Dictionary<int, int> dic,
+		                       KeyValuePair<int, int> kv)
+		{
+			dic.Add(kv.Key, kv.Value);
+		}
+
+		
 		public static int IndexOf(this string[] array, string search,
-		                         bool ignoreCase = false)
+		                          bool ignoreCase = false)
 		{
 			if(ignoreCase)
 				search = search.ToLower();
@@ -167,10 +188,19 @@ namespace Utils
 			return -1;
 		}
 		
-		public static void Add(this List<string> list, string format, 
-		                       params object[] args)
-		{
-			list.Add(string.Format(format, args));
+		/// <summary>
+		/// Gets a System.String form a SecureString
+		/// </summary>
+		/// <returns>The original string</returns>
+		public static string ToAsciiString(this SecureString s)
+		{ // it doesnt't secure the string but its easier to handle password input in a SecureString
+			string ret;
+			IntPtr pointer = Marshal.SecureStringToBSTR(s);
+			ret = Marshal.PtrToStringBSTR(pointer);
+			Marshal.ZeroFreeBSTR(pointer);
+
+			return ret;
 		}
+
 	}
 }
