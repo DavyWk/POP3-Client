@@ -1,0 +1,3 @@
+[submodule "POP-Lib"]
+	path = POP-Lib
+	url = https://github.com/DavyWk/POP-Lib.git
