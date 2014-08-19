@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-using Core.POP;
+using POP;
 using Utils;
 
 namespace CommandLine

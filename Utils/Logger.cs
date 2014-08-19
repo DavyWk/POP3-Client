@@ -1,7 +1,7 @@
 ﻿using System;
 using System.IO;
 
-using Core.POP;
+using POP;
 
 namespace Utils
 {

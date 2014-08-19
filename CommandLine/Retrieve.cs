@@ -1,8 +1,7 @@
 ﻿using System.IO;
 using System.Collections.Generic;
 
-using Core.POP;
-using Core.Mail;
+using POP;
 using Utils;
 
 namespace CommandLine

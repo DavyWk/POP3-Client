@@ -52,6 +52,9 @@
     <BaseIntermediateOutputPath>obj\</BaseIntermediateOutputPath>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="POP">
+      <HintPath>..\POP\bin\Debug\POP.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -71,35 +74,16 @@
     <Compile Include="CommandLine\Retrieve.cs" />
     <Compile Include="CommandLine\Stat.cs" />
     <Compile Include="CommandLine\UniqueIdentifier.cs" />
-    <Compile Include="Core\Mail\MailDecoder.cs" />
-    <Compile Include="Core\Mail\MailParser.cs" />
-    <Compile Include="Core\Mail\MailParsingUtils.cs" />
-    <Compile Include="Core\POP\CommandParsers\ListParser.cs" />
-    <Compile Include="Core\Mail\POPMessage.cs" />
-    <Compile Include="Core\Mail\Person.cs" />
-    <Compile Include="Core\POP\CommandParsers\StatParser.cs" />
-    <Compile Include="Core\POP\CommandParsers\UniqueIdentifierParser.cs" />
-    <Compile Include="Core\POP\POP3Client.cs" />
-    <Compile Include="Core\POP\POPCommands.cs" />
-    <Compile Include="Core\POP\Constants.cs" />
-    <Compile Include="Core\POP\POPState.cs" />
-    <Compile Include="Core\POP\Protocol.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Utils\Extensions.cs" />
     <Compile Include="Utils\Helpers.cs" />
     <Compile Include="Utils\Logger.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Core\Mail" />
-    <Folder Include="CommandLine" />
-    <Folder Include="Core\POP" />
+    <None Include="TODO.txt" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="C:\Users\DavyOnly\Desktop\errors.log">
-      <Link>errors.log</Link>
-    </None>
-    <None Include="TODO.txt" />
+    <Folder Include="CommandLine" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
