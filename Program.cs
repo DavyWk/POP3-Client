@@ -3,7 +3,7 @@ using System.IO;
 using System.Collections.Generic;
 
 using Utils;
-using POPLib;
+using POP;
 using CommandLine;
 
 namespace POP3_Client
