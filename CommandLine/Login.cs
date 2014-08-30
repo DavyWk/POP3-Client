@@ -1,4 +1,6 @@
-﻿
+﻿using System;
+using System.Collections.Generic;
+
 using POP;
 using Utils;
 
@@ -15,6 +17,18 @@ namespace CommandLine
 				Logger.Error("Not connected to a server.");
 				Logger.Error("Use the OPEN command to connect.");
 				return;
+			}
+			
+			if(args.Length  == 1)
+			{
+				//TODO: Add Logger.Input
+				var l = new List<string>(args);
+				
+				Console.Write("Username: ");
+				l.Add(Console.ReadLine());
+				l.Add(Helpers.ReadPassword("Password: "));
+				
+				args =  l.ToArray();
 			}
 			
 			if(args.Length != 3)

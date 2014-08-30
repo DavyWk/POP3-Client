@@ -1,45 +1,50 @@
 ﻿using System;
-using System.Security;
+using System.Text;
 
 namespace Utils
 {
-    public static class HelperMethods
-    {
-		public static SecureString ReadPassword()
-		{
-			SecureString s = new SecureString();
+	public static class Helpers
+	{
 
+		public static string ReadPassword(string msg)
+		{
+			Console.Write(msg);
+			
+			return ReadPassword();
+		}
+		
+		public static string ReadPassword()
+		{
+			var sb = new StringBuilder();
 			ConsoleKeyInfo key;
+			int initialLeft = Console.CursorLeft;
+			
 			do
 			{
 				key = Console.ReadKey(true);
-
-				if (key.Key == ConsoleKey.Backspace)
+				
+				if(key.Key == ConsoleKey.Backspace)
 				{
-					if (s.Length > 0)
+					if(sb.Length > 0 && Console.CursorLeft > initialLeft)
 					{
-						s.RemoveAt(s.Length - 1);
-						Console.Write(key.KeyChar);
-						Console.Write(" ");
-						Console.Write(key.KeyChar);
+						sb.Remove(sb.Length - 1, 1);
+						Console.SetCursorPosition(Console.CursorLeft - 1, Console.CursorTop);
+						Console.Write(' ');
+						Console.SetCursorPosition(Console.CursorLeft - 1, Console.CursorTop);
 					}
-
 					continue;
 				}
-
-				// accept only letters
-				if ((ConsoleKey.D0 <= key.Key) && (key.Key <= ConsoleKey.Z))
+				
+				if((ConsoleKey.D0 <= key.Key) && (key.Key) <= ConsoleKey.Z)
 				{
-					s.AppendChar(key.KeyChar);
-					Console.Write("*");
+					sb.Append(key.KeyChar);
+					Console.Write('*');
 				}
-
 			} while (key.Key != ConsoleKey.Enter);
-
+			
 			Console.WriteLine();
-			s.MakeReadOnly();
-
-			return s;
+			
+			return sb.ToString();
 		}
-    }
+	}
 }

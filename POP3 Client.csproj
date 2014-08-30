@@ -53,7 +53,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="POP">
-      <HintPath>..\POP\bin\Debug\POP.dll</HintPath>
+      <HintPath>..\POPLib\bin\Debug\POP.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
