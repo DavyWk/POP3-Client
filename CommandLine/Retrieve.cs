@@ -1,7 +1,7 @@
 ﻿using System.IO;
 using System.Collections.Generic;
 
-using POP;
+using POPLib;
 using Utils;
 
 namespace CommandLine
@@ -106,35 +106,45 @@ namespace CommandLine
 			{
 				if(data.Count == 0)
 				{
-					// Default format
-					
-					data.Add("ID: {0}", m.ID);
-					data.Add("Subject: {0}", m.Subject);
-					data.Add("Sent from {0} at {1}", 
-					         m.Sender, m.ArrivalTime.ToString());
-					var receivers = new List<string>();
-					
-					foreach(var p in m.Receivers)
-						receivers.Add(p.EMailAddress);
-					
-					data.Add("Receivers: {0}", receivers.ToString(", "));
+					DefaultFormat(m, ref data);
 				}
 				
 				Logger.Inbox(data.ToString("\r\n"));
 				return;
 			}
 			
-			string fileName = string.Format("{0}-{1}.txt", msgID, m.Subject);
+			WriteToFile(msgID, m.Subject, data);
+			
+		}
+		
+		private static void WriteToFile(int id, string subject, List<string> buffer)
+		{
+			string fileName = string.Format("{0}-{1}.txt", id, subject);
 			string filePath = Path.Combine(System.Environment.CurrentDirectory,
 			                               fileName);
+			
 			using(var fs = File.Create(filePath))
 			{
 				using(var sw = new StreamWriter(fs, System.Text.Encoding.UTF8))
-					sw.WriteLine(data.ToString("\r\n"));
-				
+					sw.WriteLine(buffer.ToString("\r\n"));
 			}
-			Logger.Info("Successfully written to {0}", filePath);
 			
+			Logger.Info("Successfully written to {0}", filePath);
+		}
+		
+		private static void DefaultFormat(POPMessage message, 
+		                                  ref List<string> buffer)
+		{
+			buffer.Add("ID: {0}", message.ID);
+			buffer.Add("Subject: {0}", message.Subject);
+			buffer.Add("Sent from {0} at {1}",
+			           message.Sender, message.ArrivalTime.ToString());
+			var receivers = new List<string>();
+			
+			foreach(var p in message.Receivers)
+				receivers.Add(p.EMailAddress);
+			
+			buffer.Add("Receivers: {0}", receivers.ToString(", "));
 		}
 	}
 }

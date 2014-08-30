@@ -52,8 +52,8 @@
     <BaseIntermediateOutputPath>obj\</BaseIntermediateOutputPath>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="POP">
-      <HintPath>..\POPLib\bin\Debug\POP.dll</HintPath>
+    <Reference Include="POPLib">
+      <HintPath>..\POPLib\bin\Debug\POPLib.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
