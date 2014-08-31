@@ -8,15 +8,14 @@ using CommandLine;
 
 namespace POP3_Client
 {
-	// POP3 protocol : http://www.faqs.org/rfcs/rfc1939.html
 	class Program
 	{
 		
 		static int Main(string[] args)
 		{
-			const string host = "pop.gmail.com";
+			//const string host = "pop.gmail.com";
 			//pop-mail.outlook.com
-			const int port = 995;
+			//const int port = 995;
 			
 			string[] exitCommands = { "x", "exit" };
 			

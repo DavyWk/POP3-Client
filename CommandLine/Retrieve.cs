@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using System.Text;
 using System.Collections.Generic;
 
 using POP;
@@ -112,14 +113,20 @@ namespace CommandLine
 				Logger.Inbox(data.ToString("\r\n"));
 				return;
 			}
-			
-			WriteToFile(msgID, m.Subject, data);
+			bool html = m.ContainsHTML && args.Contains("-b");
+			// Saving as HTML file if the user requests ONLY the body.
+			WriteToFile(msgID, m.Subject, data, html);
 			
 		}
 		
-		private static void WriteToFile(int id, string subject, List<string> buffer)
+		private static void WriteToFile(int id, string subject,
+		                                List<string> buffer, bool html = false)
 		{
-			string fileName = string.Format("{0}-{1}.txt", id, subject);
+			var extensions =  new string[] { "txt", "html" };
+			string fileName = string.Format("{0}-{1}.{2}",
+			                                id, subject, html ?
+			                                extensions[1] : extensions[0]);
+			fileName =  CleanPath(fileName);
 			string filePath = Path.Combine(System.Environment.CurrentDirectory,
 			                               fileName);
 			
@@ -132,19 +139,45 @@ namespace CommandLine
 			Logger.Info("Successfully written to {0}", filePath);
 		}
 		
-		private static void DefaultFormat(POPMessage message, 
+		private static void DefaultFormat(POPMessage message,
 		                                  ref List<string> buffer)
 		{
 			buffer.Add("ID: {0}", message.ID);
 			buffer.Add("Subject: {0}", message.Subject);
-			buffer.Add("Sent from {0} at {1}",
-			           message.Sender, message.ArrivalTime.ToString());
+			buffer.Add("Sent from {0} the {1}",
+			           message.Sender.EMailAddress,
+			           message.ArrivalTime.ToString());
+			
 			var receivers = new List<string>();
 			
 			foreach(var p in message.Receivers)
 				receivers.Add(p.EMailAddress);
 			
 			buffer.Add("Receivers: {0}", receivers.ToString(", "));
+		}
+		
+		/// <summary>
+		/// Removes invalid path characters.
+		/// </summary>
+		/// <param name="s"></param>
+		/// <returns></returns>
+		private static string CleanPath(string s)
+		{
+			int index = 0;
+			char[] invalidChars = Path.GetInvalidFileNameChars();
+			char[] chars = s.ToCharArray();
+			var sb = new StringBuilder(s);
+			
+			foreach(char c in chars)
+			{
+				if(invalidChars.Contains(c))
+				{
+					index = sb.IndexOf(c, index);
+					sb = sb.Remove(index, 1);
+				}
+			}
+			
+			return sb.ToString();
 		}
 	}
 }
