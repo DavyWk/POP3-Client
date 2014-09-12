@@ -8,7 +8,6 @@ namespace CommandLine
 {
 	public static class Login
 	{
-		private const string example = "Usage: login user@domain.xx password";
 		
 		public static void Execute(ref POP3Client c, string[] args)
 		{
@@ -19,22 +18,31 @@ namespace CommandLine
 				return;
 			}
 			
-			if(args.Length  == 1)
+			if((args.Length  == 1) ||
+			   ((args.Length == 2) && string.IsNullOrWhiteSpace(args[1])))
 			{
-				//TODO: Add Logger.Input
 				var l = new List<string>(args);
+				
+				if(args.Length  == 2)
+					l.RemoveAt(1); //removes empty string
 				
 				Console.Write("Username: ");
 				l.Add(Console.ReadLine());
 				l.Add(Helpers.ReadPassword("Password: "));
 				
 				args =  l.ToArray();
+				
+				if(!c.Connected)
+				{
+					Logger.Error("Timeout expired.");
+					Logger.Error("Use the OPEN command to reconnect");
+					return;
+				}
 			}
 			
 			if(args.Length != 3)
 			{
-				Logger.Error("Invalid arguments: {0}\n{1}", 
-				             string.Join(" ", args), example);
+				Logger.Error("Invalid arguments: {0}", string.Join(" ", args));
 				return;
 			}
 			

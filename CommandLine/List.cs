@@ -8,7 +8,6 @@ namespace CommandLine
 {
 	public static class List
 	{
-		private const string example = "Usage: list msgID\nOptions:\n -a Lists all messages";
 		
 		public static void Execute(ref POP3Client c, string[] args)
 		{
@@ -25,8 +24,7 @@ namespace CommandLine
 			
 			if(args.Length < 2)
 			{
-				Logger.Error("Not enough arguments");
-				Logger.Error(example);
+				Logger.Error("Not enough arguments, use the help command");
 				return;
 			}
 			

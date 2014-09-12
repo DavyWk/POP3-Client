@@ -5,7 +5,6 @@ namespace CommandLine
 {
 	public static class Reset
 	{
-		private const string example = "Usage: reset";
 		
 		public static void Execute(ref POP3Client c)
 		{

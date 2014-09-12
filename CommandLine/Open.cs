@@ -8,7 +8,6 @@ namespace CommandLine
 {
 	public static class Open
 	{
-		private const string example = "Usage: open host port\nOptions:\n-s : SSL";
 		
 		//TODO: Rewrite this using Execute(ref POP3Client c, string[] args)
 		public static void Execute(ref POP3Client c, string cmd)
@@ -28,7 +27,7 @@ namespace CommandLine
 				else
 					return;
 			}
-			
+			//check for args size
 			var args = cmd.Split(' ');
 			
 			
@@ -43,7 +42,6 @@ namespace CommandLine
 			
 			if(string.IsNullOrEmpty(host))
 			{
-				Logger.Error(example);
 				Logger.Error("host cannot be an empty string");
 				return;
 			}

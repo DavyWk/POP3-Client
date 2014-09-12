@@ -7,7 +7,6 @@ namespace CommandLine
 {
 	public static class UniqueIdentifier
 	{
-		private const string example = "Usage: uid msgID\nOptions:\n -a : Lists all UIDS listed on the server";
 		
 		public static void Execute(ref POP3Client c, string[] args)
 		{
@@ -24,8 +23,7 @@ namespace CommandLine
 			
 			if(args.Length < 2)
 			{
-				Logger.Error("Not enough arguments");
-				Logger.Error(example);
+				Logger.Error("Not enough arguments, use the help command");
 				return;
 			}
 			

@@ -8,6 +8,7 @@ namespace Utils
 	public enum LogType
 	{
 		Info,
+		Help,
 		Error,
 		Debug,
 		Inbox,
@@ -140,6 +141,13 @@ namespace Utils
 		{
 			Inbox(false, format, args);
 		}
+		
+
+		/// <remarks>The only use of this function is in CommandLine\Help.cs</remarks>
+		public static void Help(string text)
+		{
+			LogConsole(LogType.Help, text);
+		}
 
 		public static void Unknown(bool file, string format,
 		                           params object[] args)
@@ -235,23 +243,33 @@ namespace Utils
 					case LogType.Info:
 						c = ConsoleColor.White;
 						break;
+						
 					case LogType.Network:
 						c = ConsoleColor.Cyan;
 						break;
+						
 					case LogType.Debug:
 						c = ConsoleColor.DarkGreen;
 						break;
+						
 					case LogType.Error:
 						c = ConsoleColor.Red;
 						break;
+						
 					case LogType.Success:
 						c = ConsoleColor.Green;
 						break;
+						
 					case LogType.Unknown:
 						c = ConsoleColor.Yellow;
 						break;
+						
 					case LogType.Inbox:
 						c = ConsoleColor.Magenta;
+						break;
+						
+					case LogType.Help:
+						c = ConsoleColor.Yellow;
 						break;
 
 					default:

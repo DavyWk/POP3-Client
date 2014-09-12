@@ -6,7 +6,6 @@ namespace CommandLine
 {
 	public static class Stat
 	{
-		private const string example = "Usage: stat";
 		
 		public static void Execute(ref POP3Client c)
 		{

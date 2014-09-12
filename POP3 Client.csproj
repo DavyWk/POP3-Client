@@ -64,8 +64,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="CommandLine\Commands.cs" />
+    <Compile Include="CommandLine\Command.cs" />
     <Compile Include="CommandLine\Delete.cs" />
+    <Compile Include="CommandLine\Help.cs" />
     <Compile Include="CommandLine\List.cs" />
     <Compile Include="CommandLine\Login.cs" />
     <Compile Include="CommandLine\Open.cs" />

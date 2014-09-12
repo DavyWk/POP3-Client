@@ -17,7 +17,17 @@ namespace POP3_Client
 			//pop-mail.outlook.com
 			//const int port = 995;
 			
-			string[] exitCommands = { "x", "exit" };
+			string[] exit = {"exit", "x",};
+			string[] open = { "open","o"  };
+			string[] quit = { "quit","q"  };
+			string[] login = { "login", "l" };
+			string[] stat = { "stat", "s", "stats" };
+			string[] list = { "list" };
+			string[] uid = { "uid" };
+			string[] delete =  { "delete", "d", "del" };
+			string[] reset = { "reset", "rset" };
+			string[] retrieve = { "retrieve", "r", "retr"  };
+			string[] help = { "help", "h" };
 			
 			string logFile = Path.Combine(
 				Environment.GetFolderPath(Environment.SpecialFolder.Desktop),
@@ -29,34 +39,34 @@ namespace POP3_Client
 			POP3Client c = null;
 			
 			string cmd;
-			while(!CheckExit((cmd = Console.ReadLine()), exitCommands))
+			while(!CheckExit((cmd = Console.ReadLine()), exit))
 			{
 				var cmdArgs = cmd.Split(' ');
-				if(CheckForCommand(cmdArgs, "open"))
+				if(CheckForCommand(cmdArgs, open))
 					Open.Execute(ref c, cmd);
-				else if(CheckForCommand(cmdArgs, "quit"))
+				else if(CheckForCommand(cmdArgs, quit))
 					Quit.Execute(ref c);	
-				else if(CheckForCommand(cmdArgs, "login"))
+				else if(CheckForCommand(cmdArgs, login))
 					Login.Execute(ref c, cmdArgs);
-				else if(CheckForCommand(cmdArgs, new string[] {"stat", "stats"}))
+				else if(CheckForCommand(cmdArgs, stat))
 					Stat.Execute(ref c);
-				else if(CheckForCommand(cmdArgs, "list"))
+				else if(CheckForCommand(cmdArgs, list))
 					List.Execute(ref c, cmdArgs);
-				else if(CheckForCommand(cmdArgs, "uid"))
+				else if(CheckForCommand(cmdArgs, uid))
 					UniqueIdentifier.Execute(ref c, cmdArgs);
-				else if(CheckForCommand(cmdArgs, new string[] {"delete", "del"}))
+				else if(CheckForCommand(cmdArgs, delete))
 					Delete.Execute(ref c, cmdArgs);
-				else if(CheckForCommand(cmdArgs, "reset"))
+				else if(CheckForCommand(cmdArgs, reset))
 					Reset.Execute(ref c);
-				else if(CheckForCommand(cmdArgs, new string[] { "retrieve", "retr" }))
+				else if(CheckForCommand(cmdArgs, retrieve))
 					Retrieve.Execute(ref c, cmdArgs);
+				else if(CheckForCommand(cmdArgs, help))
+					Help.Execute(cmdArgs);
 				else
-					Logger.Error("Unknown command{0}",
-					             cmdArgs[0] != string.Empty ?
-					             string.Format(" {0}", cmdArgs[0]) : ".");
+					Logger.Error("Unknown command \"{0}\". Use the \"help\" command to get help.", cmdArgs[0]);
 			}
 			
-			Logger.Info("POP3Client developed by Davy.W cnetadev@outlook.com");
+			Logger.Info("POP3Client developed by Davy.W https://github.com/DavyWk");
 			Console.ReadLine();
 
 			return 0;
