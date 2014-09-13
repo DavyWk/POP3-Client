@@ -11,7 +11,7 @@ namespace CommandLine
 		
 		public static void Execute(ref POP3Client c, string[] args)
 		{
-			string host = args[1];
+			string host = string.Empty;
 			int port = 0;
 			bool ssl = false;
 			
@@ -27,6 +27,8 @@ namespace CommandLine
 					return;
 			}
 			
+			if(args.Length > 1)
+				host = args[1];
 			if(args.Length > 2)
 				int.TryParse(args[2], out port);
 			
