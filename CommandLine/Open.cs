@@ -9,10 +9,9 @@ namespace CommandLine
 	public static class Open
 	{
 		
-		//TODO: Rewrite this using Execute(ref POP3Client c, string[] args)
-		public static void Execute(ref POP3Client c, string cmd)
+		public static void Execute(ref POP3Client c, string[] args)
 		{
-			string host;
+			string host = args[1];
 			int port = 0;
 			bool ssl = false;
 			
@@ -27,11 +26,7 @@ namespace CommandLine
 				else
 					return;
 			}
-			//check for args size
-			var args = cmd.Split(' ');
 			
-			
-			host = args[1];
 			if(args.Length > 2)
 				int.TryParse(args[2], out port);
 			

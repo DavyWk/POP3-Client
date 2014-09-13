@@ -43,7 +43,7 @@ namespace POP3_Client
 			{
 				var cmdArgs = cmd.Split(' ');
 				if(CheckForCommand(cmdArgs, open))
-					Open.Execute(ref c, cmd);
+					Open.Execute(ref c, cmdArgs);
 				else if(CheckForCommand(cmdArgs, quit))
 					Quit.Execute(ref c);	
 				else if(CheckForCommand(cmdArgs, login))
