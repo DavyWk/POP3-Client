@@ -12,11 +12,14 @@ namespace CommandLine
 				if((c.State == POPState.Authorization) ||
 				   (c.State == POPState.Transaction))
 				{
-					Logger.Command(c.Quit());
-					c.Dispose();
-					c = null;
+					if(c.Connected)
+					{
+						Logger.Command(c.Quit());
+						c.Dispose();
+						c = null;
+					}
 				}
-				else	
+				else
 				{
 					c.Dispose();
 					c = null;

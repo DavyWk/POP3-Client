@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Text;
 using System.Collections.Generic;
 
@@ -9,15 +10,6 @@ namespace CommandLine
 {
 	public static class Retrieve
 	{
-		private const string example =
-			@"Usage: retrieve msgID
--r : Raw (whole message)
--h : Header only
--s : Subject only
--d : Date only
--b : Body only
--f : Save to file
-			";
 		public static void Execute(ref POP3Client c, string[] args)
 		{
 			if(c == null)
@@ -32,7 +24,7 @@ namespace CommandLine
 			}
 			if(args.Length < 2)
 			{
-				Logger.Error("Not enough arguments\n{0}", example);
+				Logger.Error("Not enough arguments, use the help command");
 				return;
 			}
 			
@@ -40,7 +32,7 @@ namespace CommandLine
 			int.TryParse(args[1], out msgID);
 			if(msgID < 1)
 			{
-				Logger.Error("Invalid ID: {0}\n{1}", args[1], example);
+				Logger.Error("Invalid ID: {0}", args[1]);
 				return;
 			}
 			
@@ -136,7 +128,12 @@ namespace CommandLine
 					sw.WriteLine(buffer.ToString("\r\n"));
 			}
 			
-			Logger.Info("Successfully written to {0}", filePath);
+			Logger.Success("Saved to {0}", filePsath);
+			Logger.Info("Would you like to open the file ? (y/n)");
+			
+			char ans = char.ToLower(Console.ReadLine()[0]);
+			if(ans == 'y')
+				System.Diagnostics.Process.Start(filePath);
 		}
 		
 		private static void DefaultFormat(POPMessage message,
