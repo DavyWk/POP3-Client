@@ -25,6 +25,8 @@ namespace CommandLine
 					c = null;
 				}
 			}
+			else
+				Logger.Error("Already disconnected");
 		}
 	}
 }

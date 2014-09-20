@@ -128,7 +128,7 @@ namespace CommandLine
 					sw.WriteLine(buffer.ToString("\r\n"));
 			}
 			
-			Logger.Success("Saved to {0}", filePsath);
+			Logger.Success("Saved to {0}", filePath);
 			Logger.Info("Would you like to open the file ? (y/n)");
 			
 			char ans = char.ToLower(Console.ReadLine()[0]);

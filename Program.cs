@@ -30,8 +30,8 @@ namespace POP3_Client
 			string[] help = { "help", "h" };
 			
 			string logFile = Path.Combine(
-				Environment.GetFolderPath(Environment.SpecialFolder.Desktop),
-				"errors.log");
+					System.Reflection.Assembly.GetExecutingAssembly().Location,
+					"errors.log");
 			
 			Logger.Bind(logFile);
 			Console.Title = "POP3 Client";
@@ -65,6 +65,9 @@ namespace POP3_Client
 				else
 					Logger.Error("Unknown command \"{0}\". Use the \"help\" command to get help.", cmdArgs[0]);
 			}
+			
+			if(c != null)
+				c.Dispose();
 			
 			Logger.Info("POP3Client developed by Davy.W https://github.com/DavyWk");
 			Console.ReadLine();
