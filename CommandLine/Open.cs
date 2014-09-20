@@ -42,9 +42,19 @@ namespace CommandLine
 				Logger.Error("host cannot be an empty string");
 				return;
 			}
-			
+			string ret = string.Empty;
 			c = new POP3Client(host, port, ssl);
-			string ret = c.Connect();
+			try
+			{
+				ret = c.Connect();
+			}
+			catch(System.Security.Authentication.AuthenticationException ex)
+			{
+				Logger.Network("AuthenticationException: {0}", ex.Message);
+				c.Dispose();
+				c = null;
+				return;
+			}
 			
 			if(Protocol.CheckHeader(ret))
 			{
