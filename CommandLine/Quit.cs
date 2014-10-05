@@ -14,7 +14,11 @@ namespace CommandLine
 				{
 					if(c.Connected)
 					{
-						Logger.Command(c.Quit());
+						string exitMessage = c.Quit();
+						if(exitMessage == string.Empty)
+							Logger.Success("Disconnected from {0}", c.Host);
+						else
+							Logger.Command(exitMessage);
 						c.Dispose();
 						c = null;
 					}
