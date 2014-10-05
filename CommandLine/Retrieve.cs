@@ -94,17 +94,15 @@ namespace CommandLine
 				data.Add(line);
 			}
 			
+			if(data.Count == 0)
+				DefaultFormat(m, ref data);
 			
 			if(!args.Contains("-f", true))
 			{
-				if(data.Count == 0)
-				{
-					DefaultFormat(m, ref data);
-				}
-				
 				Logger.Inbox(data.ToString("\r\n"));
 				return;
 			}
+			
 			bool html = m.ContainsHTML && args.Contains("-b");
 			// Saving as HTML file if the user requests ONLY the body.
 			WriteToFile(msgID, m.Subject, data, html);
@@ -121,6 +119,12 @@ namespace CommandLine
 			fileName =  CleanPath(fileName);
 			string filePath = Path.Combine(System.Environment.CurrentDirectory,
 			                               fileName);
+			
+			if(buffer.Count == 0)
+			{
+				Logger.Error("Nothing to write");
+				return;
+			}
 			
 			using(var fs = File.Create(filePath))
 			{
@@ -141,9 +145,10 @@ namespace CommandLine
 		{
 			buffer.Add("ID: {0}", message.ID);
 			buffer.Add("Subject: {0}", message.Subject);
-			buffer.Add("Sent from {0} the {1}",
+			buffer.Add("Sent from {0} the {1} at {2}",
 			           message.Sender.EMailAddress,
-			           message.ArrivalTime.ToString());
+			           message.ArrivalTime.ToShortDateString(),
+			           message.ArrivalTime.ToShortTimeString());
 			
 			var receivers = new List<string>();
 			
