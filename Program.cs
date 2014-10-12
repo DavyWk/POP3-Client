@@ -37,7 +37,7 @@ namespace POP3_Client
 			Console.Title = "POP3 Client";
 			
 			POP3Client c = null;
-			
+			Console.WriteLine("Welcome- Use the \"help\" command to get a list of the available commands");
 			string cmd;
 			while(!CheckExit((cmd = Console.ReadLine()), exit))
 			{

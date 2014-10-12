@@ -120,12 +120,6 @@ namespace CommandLine
 			string filePath = Path.Combine(System.Environment.CurrentDirectory,
 			                               fileName);
 			
-			if(buffer.Count == 0)
-			{
-				Logger.Error("Nothing to write");
-				return;
-			}
-			
 			using(var fs = File.Create(filePath))
 			{
 				using(var sw = new StreamWriter(fs, System.Text.Encoding.UTF8))
@@ -135,8 +129,8 @@ namespace CommandLine
 			Logger.Success("Saved to {0}", filePath);
 			Logger.Info("Would you like to open the file ? (y/n)");
 			
-			char ans = char.ToLower(Console.ReadLine()[0]);
-			if(ans == 'y')
+			var ans = Console.ReadLine();
+			if((ans == string.Empty) || (ans.ToLower() == "y"))
 				System.Diagnostics.Process.Start(filePath);
 		}
 		

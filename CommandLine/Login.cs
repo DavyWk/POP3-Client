@@ -18,6 +18,14 @@ namespace CommandLine
 				return;
 			}
 			
+			if((args.Length == 2) && !string.IsNullOrWhiteSpace(args[1]))
+			{
+				var l = new List<string>(args);
+				
+				l.Add(Helpers.ReadPassword("Password: "));
+				args = l.ToArray();
+			}
+			
 			if((args.Length  == 1) ||
 			   ((args.Length == 2) && string.IsNullOrWhiteSpace(args[1])))
 			{
@@ -30,19 +38,19 @@ namespace CommandLine
 				l.Add(Console.ReadLine());
 				l.Add(Helpers.ReadPassword("Password: "));
 				
-				args =  l.ToArray();
-				
-				if(!c.Connected)
-				{
-					Logger.Error("Timeout expired.");
-					Logger.Error("Use the OPEN command to reconnect");
-					return;
-				}
-			}
+				args = l.ToArray();
+			}			
 			
 			if(args.Length != 3)
 			{
 				Logger.Error("Invalid arguments: {0}", string.Join(" ", args));
+				return;
+			}
+			
+			if(!c.Connected)
+			{
+				Logger.Error("Timeout expired.");
+				Logger.Error("Use the OPEN command to reconnect");
 				return;
 			}
 			
@@ -65,7 +73,7 @@ namespace CommandLine
 			
 			if(c.LoggedIn)
 			{
-				Logger.Success("Login successfull");
+				Logger.Success("Login successful");
 				Logger.Command(response);
 			}
 			else

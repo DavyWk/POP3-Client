@@ -17,9 +17,9 @@ namespace CommandLine
 			
 			if(c != null)
 			{
-				Logger.Info(@"A connection is already openned, do you want to abort it ? (y/n)");
-				char ans = char.ToLower(Console.ReadLine()[0]);
-				if(ans == 'y')
+				Logger.Info("A connection is already openned, do you want to abort it ? (y/n)");
+				var ans = Console.ReadLine();
+				if((ans == string.Empty) || (ans.ToLower() == "y"))
 				{
 					Quit.Execute(ref c);
 				}
