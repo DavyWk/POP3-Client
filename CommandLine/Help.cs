@@ -124,7 +124,8 @@ Info: The statistics contains the number of message and the size of all the mess
 		private static string hUniqueID = @"UID- Displays the unique identifier of the message.
 Usage: uid [msgID]
 Options:
--a: Lists all UIDs present on the server.";
+-a: Lists all UIDs present on the server.
+-f: Saves the UID(s) to a file.";
 		
 		private static string hHelp =  @"HELP- Displays informations about the available commands. All commands are in lowercase.
 DELETE- Deletes a message from the server.

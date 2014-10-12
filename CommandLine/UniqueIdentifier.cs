@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System.IO;
+using System.Collections.Generic;
 
 using POP;
 using Utils;
@@ -27,7 +28,8 @@ namespace CommandLine
 				return;
 			}
 			
-			bool all = args.Contains("-a") || args.Contains("-A");
+			bool all = args.Contains("-a", true);
+			bool file = args.Contains("-f", true);
 			int msgID;
 			
 			int.TryParse(args[1], out msgID);
@@ -35,7 +37,11 @@ namespace CommandLine
 			if(all)
 			{
 				var dic = c.GetUID();
-				UniqueIdentifier.Display(dic);
+				
+				if(file)
+					SaveToFile(dic);
+				else
+					Display(dic);
 			}
 			else
 			{
@@ -47,14 +53,18 @@ namespace CommandLine
 				
 				var s = c.GetUID(msgID);
 				var kv = new KeyValuePair<int, string>(msgID, s);
-				UniqueIdentifier.Display(kv);
+				
+				if(file)
+					SaveToFile(kv);
+				else
+					Display(kv);
 			}
 			
 		}
 		
-		private static void Display(Dictionary<int, string> uid)
+		private static void Display(Dictionary<int, string> uids)
 		{
-			foreach(var kv in uid)
+			foreach(var kv in uids)
 				Display(kv);
 		}
 		
@@ -65,5 +75,29 @@ namespace CommandLine
 			else
 				Logger.Inbox("{0} : {1}", uid.Key, uid.Value);
 		}
+		
+		private static void SaveToFile(Dictionary<int, string> uids)
+		{
+			string filePath = Path.Combine(
+				System.Environment.CurrentDirectory, "UniqueIdentifiers.txt");
+			Logger.Info("Saving to: {0}", filePath);
+			
+			using(var sw = new StreamWriter(File.Create(filePath)))
+			{
+				foreach(var kv in uids)
+				{
+					sw.WriteLine(string.Format("{0} : {1}", kv.Key, kv.Value));
+				}
+			}
+			Logger.Success("Saved {0} uids", uids.Count);
+		}
+		private static void SaveToFile(KeyValuePair<int, string> uid)
+		{
+			var dic = new Dictionary<int, string>();
+			dic.Add(uid.Key, uid.Value);
+			SaveToFile(dic);
+		}
+		
+		
 	}
 }
