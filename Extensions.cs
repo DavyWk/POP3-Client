@@ -1,9 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Text;
-using System.Security;
 using System.Collections.Generic;
-using System.Runtime.InteropServices;
 
 namespace Utils
 {
@@ -165,7 +163,8 @@ namespace Utils
 			
 			return -1;
 		}
-		
+	
+/*		
 		/// <summary>
 		/// Gets a System.String form a SecureString
 		/// </summary>
@@ -179,6 +178,6 @@ namespace Utils
 
 			return ret;
 		}
-
+*/
 	}
 }
