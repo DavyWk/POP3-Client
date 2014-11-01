@@ -35,7 +35,7 @@ namespace Utils
 					continue;
 				}
 				
-				if((ConsoleKey.D0 <= key.Key) && (key.Key) <= ConsoleKey.Z)
+				if(((int)key.KeyChar >= 30) && ((int)key.KeyChar <= 126))
 				{
 					sb.Append(key.KeyChar);
 					Console.Write('*');

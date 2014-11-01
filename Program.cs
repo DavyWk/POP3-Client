@@ -13,9 +13,6 @@ namespace POP3_Client
 		
 		static int Main(string[] args)
 		{
-			//const string host = "pop.gmail.com";
-			//pop-mail.outlook.com
-			//const int port = 995;
 			
 			string[] exit = {"exit", "x",};
 			string[] open = { "open","o"  };
